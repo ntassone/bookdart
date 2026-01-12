@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
@@ -6,12 +8,16 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-700">Bookdart</h1>
+              <Link href="/">
+                <h1 className="text-2xl font-bold text-gray-700 hover:text-gray-600 transition-colors cursor-pointer">
+                  Bookdart
+                </h1>
+              </Link>
             </div>
             <div className="flex items-center gap-6">
-              <a href="#" className="text-gray-600 hover:text-gray-700 transition-colors">
+              <Link href="/search" className="text-gray-600 hover:text-gray-700 transition-colors">
                 Browse
-              </a>
+              </Link>
               <a href="#" className="text-gray-600 hover:text-gray-700 transition-colors">
                 My Books
               </a>
@@ -37,9 +43,11 @@ export default function Home() {
             and build your personal reading timeline.
           </p>
           <div className="flex gap-4 justify-center">
-            <button className="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-lg text-lg font-semibold transition-colors">
-              Get Started
-            </button>
+            <Link href="/search">
+              <button className="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-lg text-lg font-semibold transition-colors">
+                Get Started
+              </button>
+            </Link>
             <button className="border-2 border-gray-300 hover:border-gray-400 text-gray-600 px-8 py-3 rounded-lg text-lg font-semibold transition-colors">
               Learn More
             </button>

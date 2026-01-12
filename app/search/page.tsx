@@ -1,0 +1,132 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import SearchBar from '@/components/SearchBar';
+import BookCard from '@/components/BookCard';
+import { searchBooks } from '@/lib/api/openLibrary';
+import type { Book } from '@/lib/types/book';
+
+export default function SearchPage() {
+  const [query, setQuery] = useState('');
+  const [books, setBooks] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const delaySearch = setTimeout(() => {
+      if (query.trim()) {
+        performSearch(query);
+      } else {
+        setBooks([]);
+        setError(null);
+      }
+    }, 300);
+
+    return () => clearTimeout(delaySearch);
+  }, [query]);
+
+  const performSearch = async (searchQuery: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const results = await searchBooks(searchQuery);
+      setBooks(results);
+
+      if (results.length === 0) {
+        setError(`No books found for "${searchQuery}"`);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to search. Please try again.');
+      setBooks([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {/* Navigation */}
+      <nav className="border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <Link href="/">
+                <h1 className="text-2xl font-bold text-gray-700 hover:text-gray-600 transition-colors cursor-pointer">
+                  Bookdart
+                </h1>
+              </Link>
+            </div>
+            <div className="flex items-center gap-6">
+              <Link href="/search" className="text-gray-700 font-medium">
+                Browse
+              </Link>
+              <a href="#" className="text-gray-600 hover:text-gray-700 transition-colors">
+                My Books
+              </a>
+              <button className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
+                Sign In
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Search Section */}
+      <div className="flex-1">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="flex flex-col items-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-700 mb-8">
+              Search for Books
+            </h2>
+            <SearchBar value={query} onChange={setQuery} />
+          </div>
+
+          {/* Loading State */}
+          {loading && (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600"></div>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && !loading && (
+            <div className="text-center py-20">
+              <p className="text-gray-600">{error}</p>
+            </div>
+          )}
+
+          {/* Results Grid */}
+          {!loading && !error && books.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+              {books.map((book) => (
+                <BookCard key={book.id} book={book} />
+              ))}
+            </div>
+          )}
+
+          {/* Initial Empty State */}
+          {!loading && !error && !query && books.length === 0 && (
+            <div className="text-center py-20">
+              <svg
+                className="mx-auto h-16 w-16 text-gray-400 mb-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              <p className="text-gray-600">Start typing to search for books</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
