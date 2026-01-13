@@ -4,6 +4,22 @@ import type { Book } from '@/lib/types/book'
 const BASE_URL = 'https://openlibrary.org'
 
 /**
+ * Extract a 4-digit year from various date string formats
+ * Examples: "November 11, 2024", "2024", "2024-11-11", "Nov 2024"
+ */
+function extractYear(dateString: string): number | undefined {
+  if (!dateString) return undefined
+
+  // Look for a 4-digit year in the string
+  const yearMatch = dateString.match(/\b(19|20)\d{2}\b/)
+  if (yearMatch) {
+    return parseInt(yearMatch[0])
+  }
+
+  return undefined
+}
+
+/**
  * Fetch detailed book information from Open Library Works API
  * Book IDs from search are in format "/works/OL12345W"
  */
@@ -42,7 +58,7 @@ export async function getBookDetails(bookId: string): Promise<Book | null> {
           }
           isbn = firstEdition.isbn
           publishYear = firstEdition.publish_date
-            ? parseInt(firstEdition.publish_date)
+            ? extractYear(firstEdition.publish_date)
             : undefined
         }
       }
@@ -73,7 +89,7 @@ export async function getBookDetails(bookId: string): Promise<Book | null> {
       id: work.key,
       title: work.title,
       authors: authors.length > 0 ? authors : ['Unknown Author'],
-      publishYear: publishYear || (work.first_publish_date ? parseInt(work.first_publish_date) : undefined),
+      publishYear: publishYear || (work.first_publish_date ? extractYear(work.first_publish_date) : undefined),
       coverUrl,
       isbn,
     }

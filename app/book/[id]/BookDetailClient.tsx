@@ -49,12 +49,21 @@ export default function BookDetailClient({ initialData, bookId }: BookDetailClie
       <Navigation />
 
       <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+        {/* Header - Title, Author, Year */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-700 mb-2">{book.title}</h1>
+          <p className="text-xl text-gray-600 mb-1">{book.authors.join(', ')}</p>
+          {book.publishYear && (
+            <p className="text-lg text-gray-500">{book.publishYear}</p>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Book Info */}
+          {/* Left Column - Cover and Metadata */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm overflow-hidden sticky top-4">
               {/* Cover */}
-              <div className="relative aspect-[2/3] bg-gray-100">
+              <div className="relative aspect-[2/3] bg-gray-100 max-w-[200px] mx-auto">
                 {book.coverUrl ? (
                   <Image
                     src={book.coverUrl}
@@ -65,24 +74,19 @@ export default function BookDetailClient({ initialData, bookId }: BookDetailClie
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <svg className="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
                   </div>
                 )}
               </div>
 
-              {/* Book Metadata */}
+              {/* Metadata */}
               <div className="p-6">
-                <h1 className="text-2xl font-bold text-gray-700 mb-2">{book.title}</h1>
-                <p className="text-gray-600 mb-4">{book.authors.join(', ')}</p>
-                {book.publishYear && (
-                  <p className="text-sm text-gray-500 mb-4">{book.publishYear}</p>
-                )}
-
                 {/* Average Rating */}
                 {totalReviews > 0 && averageRating && (
                   <div className="mb-6 pb-6 border-b border-gray-200">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-2">Average Rating</h3>
                     <div className="flex items-center gap-2 mb-1">
                       <StarRating rating={averageRating} size="md" />
                       <span className="text-lg font-semibold text-gray-700">
@@ -95,6 +99,14 @@ export default function BookDetailClient({ initialData, bookId }: BookDetailClie
                   </div>
                 )}
 
+                {/* ISBN if available */}
+                {book.isbn && book.isbn.length > 0 && (
+                  <div className="mb-6 pb-6 border-b border-gray-200">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-2">ISBN</h3>
+                    <p className="text-sm text-gray-600">{book.isbn[0]}</p>
+                  </div>
+                )}
+
                 {/* Add to Library or Status */}
                 {!userBook ? (
                   <AddToLibraryButton
@@ -103,9 +115,9 @@ export default function BookDetailClient({ initialData, bookId }: BookDetailClie
                   />
                 ) : (
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Status:</span>
-                      <span className="text-sm font-medium text-gray-700 capitalize">
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-700 mb-2">Your Status</h3>
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700 capitalize">
                         {userBook.status.replace('-', ' ')}
                       </span>
                     </div>
