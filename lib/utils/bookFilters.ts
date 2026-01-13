@@ -37,6 +37,28 @@ const DERIVATIVE_PATTERNS = [
   /graphic\s*novel\s*adaptation/i,
   /comic\s*adaptation/i,
 
+  // Box sets and collections
+  /box\s*set/i,
+  /boxed\s*set/i,
+  /\d+\s*book\s*set/i,
+  /\d+\s*book\s*collection/i,
+  /complete\s*collection/i,
+  /complete\s*set/i,
+  /\d+\s*volume\s*set/i,
+
+  // Special editions and merchandise
+  /poster\s*book/i,
+  /art\s*book/i,
+  /movie\s*companion/i,
+  /cinematic\s*guide/i,
+  /film\s*companion/i,
+  /behind\s*the\s*scenes/i,
+  /making\s*of/i,
+  /official\s*guide/i,
+  /visual\s*companion/i,
+  /illustrated\s*edition/i,
+  /pop-up\s*book/i,
+
   // Common prefixes/suffixes that indicate derivative works
   /^(a\s*)?guide\s*to/i,
   /:\s*a\s*summary/i,
