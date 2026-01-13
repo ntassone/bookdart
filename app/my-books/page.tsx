@@ -141,7 +141,13 @@ export default function MyBooksPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
             {books.map((book) => (
               <div key={book.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                <div className="relative aspect-[2/3] bg-gray-100">
+                <div
+                  className="relative aspect-[2/3] bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => {
+                    const urlId = book.book_id.replace('/works/', 'works-')
+                    router.push(`/book/${urlId}`)
+                  }}
+                >
                   {book.cover_url ? (
                     <Image
                       src={book.cover_url}

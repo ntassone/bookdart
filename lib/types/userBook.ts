@@ -9,6 +9,8 @@ export interface UserBook {
   notes?: string
   date_added: string
   date_finished?: string
+  is_review_public: boolean
+  read_count: number
 
   // Book metadata
   title: string
@@ -36,4 +38,17 @@ export interface UpdateBookInput {
   rating?: number
   notes?: string
   date_finished?: string
+  is_review_public?: boolean
+  read_count?: number
+}
+
+export interface PublicReview {
+  id: string
+  user_id: string
+  rating: number
+  notes?: string
+  date_finished?: string
+  read_count: number
+  created_at: string
+  updated_at: string
 }

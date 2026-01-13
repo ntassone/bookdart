@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/client'
-import type { UserBook, AddBookInput, UpdateBookInput, BookStatus } from '@/lib/types/userBook'
+import type { UserBook, AddBookInput, UpdateBookInput, BookStatus, PublicReview } from '@/lib/types/userBook'
 
 export async function getUserBooks(status?: BookStatus): Promise<UserBook[]> {
   const supabase = createClient()
@@ -30,6 +30,8 @@ export async function addBookToLibrary(input: AddBookInput): Promise<UserBook> {
     .insert({
       user_id: user.id,
       ...input,
+      is_review_public: false,
+      read_count: 1,
     })
     .select()
     .single()
@@ -81,6 +83,74 @@ export async function getBookInLibrary(bookId: string): Promise<UserBook | null>
     .select('*')
     .eq('book_id', bookId)
     .maybeSingle()
+
+  if (error) throw error
+  return data
+}
+
+export async function getPublicReviewsForBook(bookId: string): Promise<PublicReview[]> {
+  const supabase = createClient()
+
+  const { data, error } = await supabase
+    .from('user_books')
+    .select('id, user_id, rating, notes, date_finished, read_count, created_at, updated_at')
+    .eq('book_id', bookId)
+    .eq('is_review_public', true)
+    .eq('status', 'read')
+    .not('rating', 'is', null)
+    .order('updated_at', { ascending: false })
+
+  if (error) throw error
+  return data || []
+}
+
+export async function getBookReviewStats(bookId: string): Promise<{
+  averageRating: number | null
+  totalReviews: number
+}> {
+  const supabase = createClient()
+
+  const { data, error } = await supabase
+    .from('user_books')
+    .select('rating')
+    .eq('book_id', bookId)
+    .eq('is_review_public', true)
+    .eq('status', 'read')
+    .not('rating', 'is', null)
+
+  if (error) throw error
+
+  const reviews = data || []
+  const totalReviews = reviews.length
+  const averageRating = totalReviews > 0
+    ? reviews.reduce((sum, r) => sum + r.rating!, 0) / totalReviews
+    : null
+
+  return { averageRating, totalReviews }
+}
+
+export async function markAsReread(id: string): Promise<UserBook> {
+  const supabase = createClient()
+
+  // First get current read_count
+  const { data: current, error: fetchError } = await supabase
+    .from('user_books')
+    .select('read_count')
+    .eq('id', id)
+    .single()
+
+  if (fetchError) throw fetchError
+
+  // Increment read_count
+  const { data, error } = await supabase
+    .from('user_books')
+    .update({
+      read_count: (current.read_count || 1) + 1,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single()
 
   if (error) throw error
   return data

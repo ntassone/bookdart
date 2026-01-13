@@ -1,4 +1,7 @@
+'use client'
+
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import type { Book } from '@/lib/types/book';
 import AddToLibraryButton from './AddToLibraryButton';
 
@@ -10,12 +13,24 @@ interface BookCardProps {
 }
 
 export default function BookCard({ book, onClick, showAddButton = false, onBookAdded }: BookCardProps) {
+  const router = useRouter();
   const authors = book.authors.join(', ') || 'Unknown Author';
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else {
+      // Navigate to book detail page
+      // Convert book ID from "/works/OL12345W" to URL-safe "works-OL12345W"
+      const urlId = book.id.replace('/works/', 'works-');
+      router.push(`/book/${urlId}`);
+    }
+  };
 
   return (
     <div
-      onClick={onClick}
-      className="bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all group"
+      onClick={handleClick}
+      className="bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all group cursor-pointer"
     >
       <div className="relative aspect-[2/3] bg-gray-100 overflow-hidden rounded-t-lg">
         {book.coverUrl ? (
