@@ -158,7 +158,7 @@ export default function BookCardActions({ book, onAdded }: BookCardActionsProps)
         <Menu.Portal>
           <Menu.Positioner
             side="bottom"
-            alignment="end"
+            align="end"
             sideOffset={4}
             className="z-50"
           >

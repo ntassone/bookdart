@@ -1,7 +1,6 @@
 import type { OpenLibrarySearchResponse, OpenLibraryBook, Book } from '../types/book';
 
 const BASE_URL = 'https://openlibrary.org';
-const USER_AGENT = 'Bookdart/1.0 (bookdart-app)';
 
 function transformBook(olBook: OpenLibraryBook): Book {
   return {

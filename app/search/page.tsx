@@ -5,6 +5,7 @@ import Navigation from '@/components/Navigation';
 import SearchBar from '@/components/SearchBar';
 import BookCard from '@/components/BookCard';
 import { searchBooks } from '@/lib/api/openLibrary';
+import { addRecentSearch } from '@/lib/utils/recentSearches';
 import type { Book } from '@/lib/types/book';
 
 export default function SearchPage() {
@@ -36,6 +37,9 @@ export default function SearchPage() {
 
       if (results.length === 0) {
         setError(`No books found for "${searchQuery}"`);
+      } else {
+        // Save successful search to recent searches
+        addRecentSearch(searchQuery);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to search. Please try again.');

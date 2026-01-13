@@ -17,7 +17,7 @@ export default function Home() {
             Track your reading journey
           </p>
           <p className="text-lg text-gray-500 mb-8 max-w-2xl mx-auto">
-            A clean, simple way to track the books you've read, discover new favorites,
+            A clean, simple way to track the books you&apos;ve read, discover new favorites,
             and build your personal reading timeline.
           </p>
           <div className="flex gap-4 justify-center">

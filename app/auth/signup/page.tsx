@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@base-ui/react/button'
 import { Input } from '@base-ui/react/input'
@@ -14,7 +13,6 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
-  const router = useRouter()
   const supabase = createClient()
 
   const handleSignUp = async (e: FormEvent) => {
@@ -65,7 +63,7 @@ export default function SignUpPage() {
             </div>
             <h2 className="text-2xl font-bold text-gray-700 mb-2">Check your email</h2>
             <p className="text-gray-600 mb-6">
-              We've sent you a confirmation link. Click the link in the email to complete your sign up.
+              We&apos;ve sent you a confirmation link. Click the link in the email to complete your sign up.
             </p>
             <Link href="/auth/signin">
               <Button className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors">

@@ -57,7 +57,7 @@ export default function AddToLibraryButton({ book, onAdded }: AddToLibraryButton
       <Menu.Portal>
         <Menu.Positioner
           side="bottom"
-          alignment="start"
+          align="start"
           sideOffset={4}
           className="z-50"
         >

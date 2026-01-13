@@ -18,10 +18,10 @@ interface BookDetailClientProps {
   bookId: string
 }
 
-export default function BookDetailClient({ initialData, bookId }: BookDetailClientProps) {
+export default function BookDetailClient({ initialData }: BookDetailClientProps) {
   const { user } = useAuth()
   const router = useRouter()
-  const [bookDetail, setBookDetail] = useState(initialData)
+  const [bookDetail] = useState(initialData)
   const [isEditingReview, setIsEditingReview] = useState(false)
   const { book, userBook, publicReviews, averageRating, totalReviews } = bookDetail
 
@@ -174,7 +174,7 @@ export default function BookDetailClient({ initialData, bookId }: BookDetailClie
                       </div>
                     ) : (
                       <div>
-                        <p className="text-gray-500 mb-4">You haven't reviewed this book yet.</p>
+                        <p className="text-gray-500 mb-4">You haven&apos;t reviewed this book yet.</p>
                         <button
                           onClick={() => setIsEditingReview(true)}
                           className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"

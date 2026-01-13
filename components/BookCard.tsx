@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import type { Book } from '@/lib/types/book';
 import BookCardActions from './BookCardActions';
+import { generateBookUrl } from '@/lib/utils/bookUrl';
 
 interface BookCardProps {
   book: Book;
@@ -20,10 +21,9 @@ export default function BookCard({ book, onClick, showAddButton = false, onBookA
     if (onClick) {
       onClick();
     } else {
-      // Navigate to book detail page
-      // Convert book ID from "/works/OL12345W" to URL-safe "works-OL12345W"
-      const urlId = book.id.replace('/works/', 'works-');
-      router.push(`/book/${urlId}`);
+      // Navigate to book detail page with human-readable URL
+      const url = generateBookUrl(book);
+      router.push(url);
     }
   };
 
