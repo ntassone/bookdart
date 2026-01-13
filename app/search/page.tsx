@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Navigation from '@/components/Navigation';
 import SearchBar from '@/components/SearchBar';
 import BookCard from '@/components/BookCard';
@@ -13,21 +13,23 @@ export default function SearchPage() {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const saveToRecentTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSuccessfulSearchRef = useRef<string>('');
 
   useEffect(() => {
     const delaySearch = setTimeout(() => {
       if (query.trim()) {
-        performSearch(query);
+        performSearch(query, false); // Don't save immediately
       } else {
         setBooks([]);
         setError(null);
       }
-    }, 300);
+    }, 500);
 
     return () => clearTimeout(delaySearch);
   }, [query]);
 
-  const performSearch = async (searchQuery: string) => {
+  const performSearch = async (searchQuery: string, shouldSaveToRecent: boolean = false) => {
     setLoading(true);
     setError(null);
 
@@ -38,8 +40,21 @@ export default function SearchPage() {
       if (results.length === 0) {
         setError(`No books found for "${searchQuery}"`);
       } else {
-        // Save successful search to recent searches
-        addRecentSearch(searchQuery);
+        // Store the successful search
+        lastSuccessfulSearchRef.current = searchQuery;
+
+        // Clear any existing timeout
+        if (saveToRecentTimeoutRef.current) {
+          clearTimeout(saveToRecentTimeoutRef.current);
+        }
+
+        // Only save to recent searches after user stops typing for 2 seconds
+        // This ensures we only save the final search term
+        saveToRecentTimeoutRef.current = setTimeout(() => {
+          if (lastSuccessfulSearchRef.current === searchQuery && searchQuery.trim().length >= 3) {
+            addRecentSearch(searchQuery);
+          }
+        }, 2000);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to search. Please try again.');
