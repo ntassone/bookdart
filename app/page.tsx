@@ -1,33 +1,11 @@
 import Link from 'next/link';
+import { Button } from '@base-ui/react/button';
+import Navigation from '@/components/Navigation';
 
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Navigation */}
-      <nav className="border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Link href="/">
-                <h1 className="text-2xl font-bold text-gray-700 hover:text-gray-600 transition-colors cursor-pointer">
-                  Bookdart
-                </h1>
-              </Link>
-            </div>
-            <div className="flex items-center gap-6">
-              <Link href="/search" className="text-gray-600 hover:text-gray-700 transition-colors">
-                Browse
-              </Link>
-              <a href="#" className="text-gray-600 hover:text-gray-700 transition-colors">
-                My Books
-              </a>
-              <button className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
-                Sign In
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navigation />
 
       {/* Hero Section */}
       <main className="flex-1 flex items-center justify-center px-4">
@@ -44,13 +22,13 @@ export default function Home() {
           </p>
           <div className="flex gap-4 justify-center">
             <Link href="/search">
-              <button className="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-lg text-lg font-semibold transition-colors">
+              <Button className="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-lg text-lg font-semibold transition-colors">
                 Get Started
-              </button>
+              </Button>
             </Link>
-            <button className="border-2 border-gray-300 hover:border-gray-400 text-gray-600 px-8 py-3 rounded-lg text-lg font-semibold transition-colors">
+            <Button className="border-2 border-gray-300 hover:border-gray-400 text-gray-600 px-8 py-3 rounded-lg text-lg font-semibold transition-colors">
               Learn More
-            </button>
+            </Button>
           </div>
         </div>
       </main>

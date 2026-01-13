@@ -15,6 +15,7 @@ Bookdart is a clean, focused book tracking application - think Letterboxd, but f
 - **Next.js 14**: React framework with App Router for modern, performant web applications
 - **TypeScript**: Type safety and better developer experience
 - **Tailwind CSS**: Utility-first CSS framework for rapid, consistent styling
+- **Base UI**: Headless component library from MUI for accessible, unstyled components
 
 ### Backend (Planned)
 - **Supabase**: Backend-as-a-Service for authentication, database, and real-time features
@@ -55,8 +56,9 @@ bookdart/
 - Basic folder structure
 - Landing page with branding
 
-### Phase 2: Core Features (Upcoming)
-- Book search integration with Open Library API
+### Phase 2: Core Features (In Progress)
+- Book search integration with Open Library API ✓
+- Base UI component library integration ✓
 - User authentication with Supabase
 - Personal book lists (reading, read, want to read)
 - Book rating and review system

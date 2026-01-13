@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import Navigation from '@/components/Navigation';
 import SearchBar from '@/components/SearchBar';
 import BookCard from '@/components/BookCard';
 import { searchBooks } from '@/lib/api/openLibrary';
@@ -47,31 +47,7 @@ export default function SearchPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Navigation */}
-      <nav className="border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Link href="/">
-                <h1 className="text-2xl font-bold text-gray-700 hover:text-gray-600 transition-colors cursor-pointer">
-                  Bookdart
-                </h1>
-              </Link>
-            </div>
-            <div className="flex items-center gap-6">
-              <Link href="/search" className="text-gray-700 font-medium">
-                Browse
-              </Link>
-              <a href="#" className="text-gray-600 hover:text-gray-700 transition-colors">
-                My Books
-              </a>
-              <button className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
-                Sign In
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navigation />
 
       {/* Search Section */}
       <div className="flex-1">

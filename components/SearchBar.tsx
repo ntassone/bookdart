@@ -1,3 +1,5 @@
+import { Input } from '@base-ui/react/input';
+
 interface SearchBarProps {
   value: string;
   onChange: (value: string) => void;
@@ -7,7 +9,7 @@ interface SearchBarProps {
 export default function SearchBar({ value, onChange, placeholder = 'Search for books...' }: SearchBarProps) {
   return (
     <div className="relative w-full max-w-2xl">
-      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
         <svg
           className="h-5 w-5 text-gray-500"
           fill="none"
@@ -22,12 +24,14 @@ export default function SearchBar({ value, onChange, placeholder = 'Search for b
           />
         </svg>
       </div>
-      <input
-        type="text"
+      <Input
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onValueChange={onChange}
         placeholder={placeholder}
-        className="w-full pl-12 pr-4 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-all"
+        className={({ focused }) => `
+          w-full pl-12 pr-4 py-3 text-gray-700 bg-white border rounded-lg transition-all
+          ${focused ? 'border-gray-400 ring-2 ring-gray-300 outline-none' : 'border-gray-300'}
+        `}
       />
     </div>
   );
