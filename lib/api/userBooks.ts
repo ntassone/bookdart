@@ -25,6 +25,15 @@ export async function addBookToLibrary(input: AddBookInput): Promise<UserBook> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
+  // Check if book already exists in user's library
+  const existing = await getBookInLibrary(input.book_id)
+
+  if (existing) {
+    // Update the existing entry with the new status
+    return updateUserBook(existing.id, { status: input.status })
+  }
+
+  // Insert new book
   const { data, error } = await supabase
     .from('user_books')
     .insert({
@@ -36,14 +45,7 @@ export async function addBookToLibrary(input: AddBookInput): Promise<UserBook> {
     .select()
     .single()
 
-  if (error) {
-    // Handle unique constraint violation
-    if (error.code === '23505') {
-      throw new Error('Book already in your library')
-    }
-    throw error
-  }
-
+  if (error) throw error
   return data
 }
 

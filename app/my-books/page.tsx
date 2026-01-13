@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import Navigation from '@/components/Navigation'
-import { getUserBooks, removeBookFromLibrary, updateUserBook } from '@/lib/api/userBooks'
+import BookCard from '@/components/BookCard'
+import { getUserBooks } from '@/lib/api/userBooks'
 import type { UserBook, BookStatus } from '@/lib/types/userBook'
-import Image from 'next/image'
+import type { Book } from '@/lib/types/book'
 
 export default function MyBooksPage() {
   const { user, loading: authLoading } = useAuth()
@@ -39,25 +40,15 @@ export default function MyBooksPage() {
     }
   }
 
-  const handleStatusChange = async (bookId: string, newStatus: BookStatus) => {
-    try {
-      await updateUserBook(bookId, { status: newStatus })
-      await loadBooks()
-    } catch (error) {
-      console.error('Failed to update book:', error)
-    }
-  }
-
-  const handleRemove = async (bookId: string) => {
-    if (!confirm('Remove this book from your library?')) return
-
-    try {
-      await removeBookFromLibrary(bookId)
-      await loadBooks()
-    } catch (error) {
-      console.error('Failed to remove book:', error)
-    }
-  }
+  // Convert UserBook to Book format for BookCard component
+  const convertToBook = (userBook: UserBook): Book => ({
+    id: userBook.book_id,
+    title: userBook.title,
+    authors: userBook.authors,
+    publishYear: userBook.publish_year,
+    coverUrl: userBook.cover_url,
+    isbn: userBook.isbn,
+  })
 
   if (authLoading || !user) {
     return (
@@ -139,68 +130,13 @@ export default function MyBooksPage() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {books.map((book) => (
-              <div key={book.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                <div
-                  className="relative aspect-[2/3] bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() => {
-                    const urlId = book.book_id.replace('/works/', 'works-')
-                    router.push(`/book/${urlId}`)
-                  }}
-                >
-                  {book.cover_url ? (
-                    <Image
-                      src={book.cover_url}
-                      alt={`${book.title} cover`}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 20vw"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <svg
-                        className="w-16 h-16"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                        />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-700 text-sm mb-1 line-clamp-2">
-                    {book.title}
-                  </h3>
-                  <p className="text-xs text-gray-600 line-clamp-1 mb-2">
-                    {book.authors.join(', ')}
-                  </p>
-
-                  {/* Status dropdown */}
-                  <select
-                    value={book.status}
-                    onChange={(e) => handleStatusChange(book.id, e.target.value as BookStatus)}
-                    className="w-full text-xs px-2 py-1 border border-gray-300 rounded mb-2 text-gray-700 focus:outline-none focus:border-gray-400"
-                  >
-                    <option value="want-to-read">Want to Read</option>
-                    <option value="reading">Reading</option>
-                    <option value="read">Read</option>
-                  </select>
-
-                  <button
-                    onClick={() => handleRemove(book.id)}
-                    className="w-full text-xs text-red-600 hover:text-red-700 py-1 transition-colors"
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
+            {books.map((userBook) => (
+              <BookCard
+                key={userBook.id}
+                book={convertToBook(userBook)}
+                showAddButton={true}
+                onBookAdded={loadBooks}
+              />
             ))}
           </div>
         )}

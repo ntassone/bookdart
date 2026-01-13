@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import type { Book } from '@/lib/types/book';
-import AddToLibraryButton from './AddToLibraryButton';
+import BookCardActions from './BookCardActions';
 
 interface BookCardProps {
   book: Book;
@@ -30,9 +30,9 @@ export default function BookCard({ book, onClick, showAddButton = false, onBookA
   return (
     <div
       onClick={handleClick}
-      className="bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all group cursor-pointer"
+      className="bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all group cursor-pointer relative overflow-hidden"
     >
-      <div className="relative aspect-[2/3] bg-gray-100 overflow-hidden rounded-t-lg">
+      <div className="relative aspect-[2/3] bg-gray-100 overflow-hidden">
         {book.coverUrl ? (
           <Image
             src={book.coverUrl}
@@ -58,6 +58,13 @@ export default function BookCard({ book, onClick, showAddButton = false, onBookA
             </svg>
           </div>
         )}
+
+        {/* Action buttons on hover - overlay on cover */}
+        {showAddButton && (
+          <div className="absolute bottom-0 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            <BookCardActions book={book} onAdded={onBookAdded} />
+          </div>
+        )}
       </div>
       <div className="p-4">
         <h3 className="font-semibold text-gray-700 text-sm mb-1 line-clamp-2">
@@ -67,15 +74,9 @@ export default function BookCard({ book, onClick, showAddButton = false, onBookA
           {authors}
         </p>
         {book.publishYear && (
-          <p className="text-xs text-gray-500 mb-2">
+          <p className="text-xs text-gray-500">
             {book.publishYear}
           </p>
-        )}
-
-        {showAddButton && (
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
-            <AddToLibraryButton book={book} onAdded={onBookAdded} />
-          </div>
         )}
       </div>
     </div>

@@ -51,7 +51,7 @@ export default function AddToLibraryButton({ book, onAdded }: AddToLibraryButton
         className="w-full px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-semibold disabled:opacity-50"
         disabled={loading}
       >
-        Add to Library +
+        Add to List +
       </Menu.Trigger>
 
       <Menu.Portal>
