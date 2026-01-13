@@ -11,9 +11,10 @@ interface BookCardProps {
   onClick?: () => void;
   showAddButton?: boolean;
   onBookAdded?: () => void;
+  showPublishYear?: boolean;
 }
 
-export default function BookCard({ book, onClick, showAddButton = false, onBookAdded }: BookCardProps) {
+export default function BookCard({ book, onClick, showAddButton = false, onBookAdded, showPublishYear = true }: BookCardProps) {
   const router = useRouter();
   const authors = book.authors.join(', ') || 'Unknown Author';
 
@@ -73,7 +74,7 @@ export default function BookCard({ book, onClick, showAddButton = false, onBookA
         <p className="text-xs text-gray-600 line-clamp-1 mb-1">
           {authors}
         </p>
-        {book.publishYear && (
+        {showPublishYear && book.publishYear && (
           <p className="text-xs text-gray-500">
             {book.publishYear}
           </p>

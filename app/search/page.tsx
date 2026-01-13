@@ -109,7 +109,7 @@ export default function SearchPage() {
           {!loading && !error && displayedBooks.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
               {displayedBooks.map((book) => (
-                <BookCard key={book.id} book={book} showAddButton={true} />
+                <BookCard key={book.id} book={book} showAddButton={true} showPublishYear={false} />
               ))}
             </div>
           )}
