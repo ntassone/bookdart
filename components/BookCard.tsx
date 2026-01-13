@@ -1,20 +1,23 @@
 import Image from 'next/image';
 import type { Book } from '@/lib/types/book';
+import AddToLibraryButton from './AddToLibraryButton';
 
 interface BookCardProps {
   book: Book;
   onClick?: () => void;
+  showAddButton?: boolean;
+  onBookAdded?: () => void;
 }
 
-export default function BookCard({ book, onClick }: BookCardProps) {
+export default function BookCard({ book, onClick, showAddButton = false, onBookAdded }: BookCardProps) {
   const authors = book.authors.join(', ') || 'Unknown Author';
 
   return (
     <div
       onClick={onClick}
-      className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
+      className="bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all group"
     >
-      <div className="relative aspect-[2/3] bg-gray-100">
+      <div className="relative aspect-[2/3] bg-gray-100 overflow-hidden rounded-t-lg">
         {book.coverUrl ? (
           <Image
             src={book.coverUrl}
@@ -49,9 +52,15 @@ export default function BookCard({ book, onClick }: BookCardProps) {
           {authors}
         </p>
         {book.publishYear && (
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 mb-2">
             {book.publishYear}
           </p>
+        )}
+
+        {showAddButton && (
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+            <AddToLibraryButton book={book} onAdded={onBookAdded} />
+          </div>
         )}
       </div>
     </div>

@@ -29,9 +29,9 @@ export default function Navigation() {
             <Link href="/search" className="text-gray-600 hover:text-gray-700 transition-colors">
               Browse
             </Link>
-            <a href="#" className="text-gray-600 hover:text-gray-700 transition-colors">
+            <Link href="/my-books" className="text-gray-600 hover:text-gray-700 transition-colors">
               My Books
-            </a>
+            </Link>
             {loading ? (
               <div className="w-20 h-10 bg-gray-200 rounded-lg animate-pulse" />
             ) : user ? (
