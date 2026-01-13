@@ -1,6 +1,7 @@
 import type { OpenLibraryWork, OpenLibraryEditionsResponse, OpenLibraryAuthor } from '@/lib/types/bookDetail'
 import type { Book } from '@/lib/types/book'
 import { extractYear } from '@/lib/utils/dateUtils'
+import { getCachedBook, cacheBook } from './bookCache'
 
 const BASE_URL = 'https://openlibrary.org'
 
@@ -9,6 +10,12 @@ const BASE_URL = 'https://openlibrary.org'
  * Book IDs from search are in format "/works/OL12345W"
  */
 export async function getBookDetails(bookId: string): Promise<Book | null> {
+  // Check cache first
+  const cachedBook = await getCachedBook(bookId)
+  if (cachedBook) {
+    return cachedBook
+  }
+
   try {
     // bookId comes in as "/works/OL12345W" from search results
     const response = await fetch(`${BASE_URL}${bookId}.json`)
@@ -91,7 +98,7 @@ export async function getBookDetails(bookId: string): Promise<Book | null> {
       authors = authorNames.filter(Boolean) as string[]
     }
 
-    return {
+    const book: Book = {
       id: work.key,
       title: work.title,
       authors: authors.length > 0 ? authors : ['Unknown Author'],
@@ -99,6 +106,11 @@ export async function getBookDetails(bookId: string): Promise<Book | null> {
       coverUrl,
       isbn,
     }
+
+    // Cache the book details for future requests
+    cacheBook(book).catch(err => console.error('Cache error:', err))
+
+    return book
   } catch (error) {
     console.error('Error fetching book details:', error)
     return null

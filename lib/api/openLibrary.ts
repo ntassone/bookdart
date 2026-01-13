@@ -1,5 +1,6 @@
 import type { OpenLibrarySearchResponse, OpenLibraryBook, Book } from '../types/book';
 import { extractYear } from '@/lib/utils/dateUtils';
+import { getCachedBooks, cacheBooks } from './bookCache';
 
 const BASE_URL = 'https://openlibrary.org';
 
@@ -36,7 +37,26 @@ export async function searchBooks(query: string): Promise<Book[]> {
     }
 
     const data: OpenLibrarySearchResponse = await response.json();
-    return data.docs.map(transformBook);
+    const books = data.docs.map(transformBook);
+
+    // Check cache for existing books
+    const bookIds = books.map(b => b.id);
+    const cachedBooks = await getCachedBooks(bookIds);
+
+    // Merge cached data with fresh data (prefer cached for better quality)
+    const mergedBooks = books.map(book => {
+      const cached = cachedBooks.get(book.id);
+      return cached || book;
+    });
+
+    // Cache the new/updated books in the background
+    const booksToCache = books.filter(book => !cachedBooks.has(book.id));
+    if (booksToCache.length > 0) {
+      // Don't await - cache in background
+      cacheBooks(booksToCache).catch(err => console.error('Cache error:', err));
+    }
+
+    return mergedBooks;
   } catch (error) {
     if (error instanceof Error) {
       throw error;
@@ -63,7 +83,25 @@ export async function searchByTitle(title: string): Promise<Book[]> {
     }
 
     const data: OpenLibrarySearchResponse = await response.json();
-    return data.docs.map(transformBook);
+    const books = data.docs.map(transformBook);
+
+    // Check cache for existing books
+    const bookIds = books.map(b => b.id);
+    const cachedBooks = await getCachedBooks(bookIds);
+
+    // Merge cached data with fresh data (prefer cached for better quality)
+    const mergedBooks = books.map(book => {
+      const cached = cachedBooks.get(book.id);
+      return cached || book;
+    });
+
+    // Cache the new/updated books in the background
+    const booksToCache = books.filter(book => !cachedBooks.has(book.id));
+    if (booksToCache.length > 0) {
+      cacheBooks(booksToCache).catch(err => console.error('Cache error:', err));
+    }
+
+    return mergedBooks;
   } catch (error) {
     if (error instanceof Error) {
       throw error;
@@ -90,7 +128,25 @@ export async function searchByAuthor(author: string): Promise<Book[]> {
     }
 
     const data: OpenLibrarySearchResponse = await response.json();
-    return data.docs.map(transformBook);
+    const books = data.docs.map(transformBook);
+
+    // Check cache for existing books
+    const bookIds = books.map(b => b.id);
+    const cachedBooks = await getCachedBooks(bookIds);
+
+    // Merge cached data with fresh data (prefer cached for better quality)
+    const mergedBooks = books.map(book => {
+      const cached = cachedBooks.get(book.id);
+      return cached || book;
+    });
+
+    // Cache the new/updated books in the background
+    const booksToCache = books.filter(book => !cachedBooks.has(book.id));
+    if (booksToCache.length > 0) {
+      cacheBooks(booksToCache).catch(err => console.error('Cache error:', err));
+    }
+
+    return mergedBooks;
   } catch (error) {
     if (error instanceof Error) {
       throw error;

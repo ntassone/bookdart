@@ -25,3 +25,9 @@ export interface Book {
   coverUrl?: string;
   isbn?: string[];
 }
+
+export interface CachedBook extends Book {
+  description?: string;
+  cached_at: string;
+  updated_at: string;
+}
