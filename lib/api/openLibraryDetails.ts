@@ -1,23 +1,8 @@
 import type { OpenLibraryWork, OpenLibraryEditionsResponse, OpenLibraryAuthor } from '@/lib/types/bookDetail'
 import type { Book } from '@/lib/types/book'
+import { extractYear } from '@/lib/utils/dateUtils'
 
 const BASE_URL = 'https://openlibrary.org'
-
-/**
- * Extract a 4-digit year from various date string formats
- * Examples: "November 11, 2024", "2024", "2024-11-11", "Nov 2024"
- */
-function extractYear(dateString: string): number | undefined {
-  if (!dateString) return undefined
-
-  // Look for a 4-digit year in the string
-  const yearMatch = dateString.match(/\b(19|20)\d{2}\b/)
-  if (yearMatch) {
-    return parseInt(yearMatch[0])
-  }
-
-  return undefined
-}
 
 /**
  * Fetch detailed book information from Open Library Works API
@@ -45,21 +30,42 @@ export async function getBookDetails(bookId: string): Promise<Book | null> {
       coverUrl = `https://covers.openlibrary.org/b/id/${work.covers[0]}-L.jpg`
     }
 
-    // Get additional metadata from first edition
+    // Try multiple sources for publish year in priority order:
+    // 1. Work's first_publish_date
+    // 2. First edition's publish_date
+    // 3. Any edition with a valid year
+
+    // First try the work's first publish date
+    if (work.first_publish_date) {
+      publishYear = extractYear(work.first_publish_date)
+    }
+
+    // Get additional metadata from editions
     try {
-      const editionsResponse = await fetch(`${BASE_URL}${bookId}/editions.json?limit=1`)
+      const editionsResponse = await fetch(`${BASE_URL}${bookId}/editions.json?limit=10`)
       if (editionsResponse.ok) {
         const editionsData: OpenLibraryEditionsResponse = await editionsResponse.json()
-        const firstEdition = editionsData.entries?.[0]
 
+        // Try to get cover and ISBN from first edition
+        const firstEdition = editionsData.entries?.[0]
         if (firstEdition) {
           if (!coverUrl && firstEdition.covers?.[0]) {
             coverUrl = `https://covers.openlibrary.org/b/id/${firstEdition.covers[0]}-L.jpg`
           }
           isbn = firstEdition.isbn
-          publishYear = firstEdition.publish_date
-            ? extractYear(firstEdition.publish_date)
-            : undefined
+        }
+
+        // If we still don't have a valid publish year, try editions
+        if (!publishYear && editionsData.entries) {
+          // Sort editions by publish_date to find the earliest valid one
+          const validYears = editionsData.entries
+            .map(edition => edition.publish_date ? extractYear(edition.publish_date) : undefined)
+            .filter((year): year is number => year !== undefined)
+            .sort((a, b) => a - b)
+
+          if (validYears.length > 0) {
+            publishYear = validYears[0] // Use the earliest valid year
+          }
         }
       }
     } catch {
@@ -89,7 +95,7 @@ export async function getBookDetails(bookId: string): Promise<Book | null> {
       id: work.key,
       title: work.title,
       authors: authors.length > 0 ? authors : ['Unknown Author'],
-      publishYear: publishYear || (work.first_publish_date ? extractYear(work.first_publish_date) : undefined),
+      publishYear,
       coverUrl,
       isbn,
     }

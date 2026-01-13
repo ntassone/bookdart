@@ -1,4 +1,5 @@
 import type { OpenLibrarySearchResponse, OpenLibraryBook, Book } from '../types/book';
+import { extractYear } from '@/lib/utils/dateUtils';
 
 const BASE_URL = 'https://openlibrary.org';
 
@@ -7,7 +8,7 @@ function transformBook(olBook: OpenLibraryBook): Book {
     id: olBook.key,
     title: olBook.title,
     authors: olBook.author_name || [],
-    publishYear: olBook.first_publish_year,
+    publishYear: extractYear(olBook.first_publish_year),
     coverUrl: olBook.cover_i ? getCoverUrl(olBook.cover_i, 'L') : undefined,
     isbn: olBook.isbn,
   };

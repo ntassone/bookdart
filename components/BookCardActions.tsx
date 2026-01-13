@@ -5,6 +5,7 @@ import { Menu } from '@base-ui/react/menu'
 import { useAuth } from '@/lib/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { addBookToLibrary, getBookInLibrary, removeBookFromLibrary } from '@/lib/api/userBooks'
+import { generateBookUrl } from '@/lib/utils/bookUrl'
 import type { Book } from '@/lib/types/book'
 import type { BookStatus, UserBook } from '@/lib/types/userBook'
 
@@ -95,7 +96,7 @@ export default function BookCardActions({ book, onAdded }: BookCardActionsProps)
             isWantToRead ? 'text-gray-700' : 'text-gray-600'
           }`}
           fill={isWantToRead ? 'currentColor' : 'none'}
-          stroke="currentColor"
+          stroke={isWantToRead ? 'none' : 'currentColor'}
           viewBox="0 0 24 24"
         >
           <path
@@ -116,21 +117,35 @@ export default function BookCardActions({ book, onAdded }: BookCardActionsProps)
         }`}
         title={isRead ? 'Remove from Read' : 'Add to Read'}
       >
-        <svg
-          className={`w-4 h-4 group-hover/btn:text-gray-700 ${
-            isRead ? 'text-gray-700' : 'text-gray-600'
-          }`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={isRead ? 3 : 2}
-            d="M5 13l4 4L19 7"
-          />
-        </svg>
+        {isRead ? (
+          // Solid checkmark circle when in Read list
+          <svg
+            className="w-4 h-4 text-gray-700 group-hover/btn:text-gray-800"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fillRule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clipRule="evenodd"
+            />
+          </svg>
+        ) : (
+          // Outlined checkmark when not in Read list
+          <svg
+            className="w-4 h-4 text-gray-600 group-hover/btn:text-gray-700"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+        )}
       </button>
 
       {/* More Options Menu */}
@@ -181,8 +196,8 @@ export default function BookCardActions({ book, onAdded }: BookCardActionsProps)
               <Menu.Item
                 onClick={(e) => {
                   e.stopPropagation()
-                  const urlId = book.id.replace('/works/', 'works-')
-                  router.push(`/book/${urlId}`)
+                  const url = generateBookUrl(book)
+                  router.push(url)
                 }}
                 disabled={loading}
                 className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors cursor-pointer outline-none data-[highlighted]:bg-gray-50"
