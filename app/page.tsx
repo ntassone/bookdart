@@ -1,10 +1,15 @@
 import Link from 'next/link';
 import { Button } from '@base-ui/react/button';
 import Navigation from '@/components/Navigation';
+import AuthRedirect from '@/components/AuthRedirect';
+import { Suspense } from 'react';
 
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
+      <Suspense fallback={null}>
+        <AuthRedirect />
+      </Suspense>
       <Navigation />
 
       {/* Hero Section */}

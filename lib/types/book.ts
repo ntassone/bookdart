@@ -21,8 +21,10 @@ export interface Book {
   id: string;
   title: string;
   authors: string[];
+  author?: string; // Convenience field for single author display
   publishYear?: number;
   coverUrl?: string;
+  cover_url?: string; // Alternative naming for cover URL
   isbn?: string[];
 }
 

@@ -1,18 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { Button } from '@base-ui/react/button'
 import { useAuth } from '@/lib/contexts/AuthContext'
+import UserAvatar from '@/components/UserAvatar'
 
 export default function Navigation() {
-  const { user, loading, signOut } = useAuth()
-  const router = useRouter()
-
-  const handleSignOut = async () => {
-    await signOut()
-    router.push('/')
-  }
+  const { user, loading } = useAuth()
 
   return (
     <nav className="border-b border-gray-100">
@@ -33,17 +27,9 @@ export default function Navigation() {
               My Books
             </Link>
             {loading ? (
-              <div className="w-20 h-10 bg-gray-200 rounded-lg animate-pulse" />
+              <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse" />
             ) : user ? (
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600">{user.email}</span>
-                <Button
-                  onClick={handleSignOut}
-                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
-                >
-                  Sign Out
-                </Button>
-              </div>
+              <UserAvatar />
             ) : (
               <Link href="/auth/signin">
                 <Button className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">

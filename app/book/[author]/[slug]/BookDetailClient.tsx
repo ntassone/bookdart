@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Navigation from '@/components/Navigation'
 import StarRating from '@/components/StarRating'
@@ -10,6 +10,7 @@ import BookCard from '@/components/BookCard'
 import AddToLibraryButton from '@/components/AddToLibraryButton'
 import { useAuth } from '@/lib/contexts/AuthContext'
 import { updateUserBook, markAsReread } from '@/lib/api/userBooks'
+import { addRecentBook } from '@/lib/utils/recentBooks'
 import type { BookDetail } from '@/lib/types/bookDetail'
 import type { UpdateBookInput } from '@/lib/types/userBook'
 
@@ -24,6 +25,11 @@ export default function BookDetailClient({ initialData }: BookDetailClientProps)
   const [bookDetail] = useState(initialData)
   const [isEditingReview, setIsEditingReview] = useState(false)
   const { book, userBook, publicReviews, averageRating, totalReviews } = bookDetail
+
+  // Add book to recently visited when component mounts
+  useEffect(() => {
+    addRecentBook(book)
+  }, [book])
 
   const handleSaveReview = async (data: UpdateBookInput) => {
     if (!userBook) return

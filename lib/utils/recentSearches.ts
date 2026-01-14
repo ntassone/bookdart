@@ -31,6 +31,18 @@ export function addRecentSearch(query: string): void {
   }
 }
 
+export function removeRecentSearch(query: string): void {
+  if (typeof window === 'undefined') return
+
+  try {
+    const searches = getRecentSearches()
+    const filtered = searches.filter(s => s !== query)
+    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(filtered))
+  } catch (error) {
+    console.error('Failed to remove recent search:', error)
+  }
+}
+
 export function clearRecentSearches(): void {
   if (typeof window === 'undefined') return
 
