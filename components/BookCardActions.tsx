@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { Menu } from '@base-ui/react/menu'
+import { Tooltip } from '@base-ui/react/tooltip'
 import { useAuth } from '@/lib/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
+import { useToast } from '@/lib/contexts/ToastContext'
 import { addBookToLibrary, getBookInLibrary, removeBookFromLibrary } from '@/lib/api/userBooks'
 import { generateBookUrl } from '@/lib/utils/bookUrl'
 import type { Book } from '@/lib/types/book'
@@ -25,6 +27,7 @@ interface BookCardActionsProps {
 export default function BookCardActions({ book, onAdded }: BookCardActionsProps) {
   const { user } = useAuth()
   const router = useRouter()
+  const { addToast } = useToast()
   const [loading, setLoading] = useState(false)
   const [userBook, setUserBook] = useState<UserBook | null>(null)
 
@@ -46,6 +49,7 @@ export default function BookCardActions({ book, onAdded }: BookCardActionsProps)
       if (userBook?.status === status) {
         await removeBookFromLibrary(userBook.id)
         setUserBook(null)
+        addToast('Removed from your library', 'success')
         onAdded?.()
       } else {
         // Otherwise, add it to this list (or move it from another list)
@@ -61,11 +65,18 @@ export default function BookCardActions({ book, onAdded }: BookCardActionsProps)
         // Refresh to get updated list status
         const updated = await getBookInLibrary(book.id)
         setUserBook(updated)
+
+        const statusLabels: Record<BookStatus, string> = {
+          'read': 'Added to Read',
+          'want-to-read': 'Added to Want to Read',
+          'reading': 'Added to Currently Reading'
+        }
+        addToast(statusLabels[status], 'success')
         onAdded?.()
       }
     } catch (error) {
       console.error('Failed to update list:', error)
-      alert(error instanceof Error ? error.message : 'Failed to update list')
+      addToast(error instanceof Error ? error.message : 'Failed to update list', 'error')
     } finally {
       setLoading(false)
     }
@@ -81,133 +92,129 @@ export default function BookCardActions({ book, onAdded }: BookCardActionsProps)
   const isReading = userBook?.status === 'reading'
 
   return (
-    <div className="flex items-center gap-1 p-2" onClick={(e) => e.stopPropagation()}>
-      {/* Want to Read List - Book icon */}
-      <button
-        onClick={(e) => handleQuickAction(e, 'want-to-read')}
-        disabled={loading}
-        className={`p-2 bg-white/90 hover:bg-white border rounded-lg transition-all disabled:opacity-50 group/btn ${
-          isWantToRead ? 'border-gray-600 bg-gray-50' : 'border-gray-200'
-        }`}
-        title={isWantToRead ? 'Remove from Want to Read' : 'Add to Want to Read'}
-      >
-        <svg
-          className={`w-4 h-4 group-hover/btn:text-gray-700 ${
-            isWantToRead ? 'text-gray-700' : 'text-gray-600'
-          }`}
-          fill={isWantToRead ? 'currentColor' : 'none'}
-          stroke={isWantToRead ? 'none' : 'currentColor'}
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-          />
-        </svg>
-      </button>
+    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
+      {/* Read checkbox - top right */}
+      <div className="absolute top-2 right-2">
+        <Tooltip.Root openDelay={100} closeDelay={0}>
+          <Tooltip.Trigger asChild>
+            <button
+              onClick={(e) => handleQuickAction(e, 'read')}
+              disabled={loading}
+              className={`p-2 bg-white hover:bg-gray-50 border transition-all disabled:opacity-50 ${
+                isRead ? 'border-gray-600' : 'border-gray-300'
+              }`}
+            >
+              {isRead ? (
+                // Checked checkbox when marked as read
+                <svg className="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <rect x="5" y="5" width="14" height="14" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" />
+                </svg>
+              ) : (
+                // Empty square checkbox
+                <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <rect x="5" y="5" width="14" height="14" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+            </button>
+          </Tooltip.Trigger>
+          <Tooltip.Portal>
+            <Tooltip.Positioner sideOffset={4}>
+              <Tooltip.Popup className="bg-gray-800 text-white text-xs px-2 py-1 z-50">
+                {isRead ? 'Mark as unread' : 'Mark as read'}
+              </Tooltip.Popup>
+            </Tooltip.Positioner>
+          </Tooltip.Portal>
+        </Tooltip.Root>
+      </div>
 
-      {/* Read List - Check icon */}
-      <button
-        onClick={(e) => handleQuickAction(e, 'read')}
-        disabled={loading}
-        className={`p-2 bg-white/90 hover:bg-white border rounded-lg transition-all disabled:opacity-50 group/btn ${
-          isRead ? 'border-gray-600 bg-gray-50' : 'border-gray-200'
-        }`}
-        title={isRead ? 'Remove from Read' : 'Add to Read'}
-      >
-        {isRead ? (
-          // Solid checkmark circle when in Read list
-          <svg
-            className="w-4 h-4 text-gray-700 group-hover/btn:text-gray-800"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-              clipRule="evenodd"
-            />
-          </svg>
-        ) : (
-          // Outlined checkmark when not in Read list
-          <svg
-            className="w-4 h-4 text-gray-600 group-hover/btn:text-gray-700"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
-        )}
-      </button>
-
-      {/* More Options Menu */}
-      <Menu.Root>
-        <Menu.Trigger
-          className="p-2 bg-white/90 hover:bg-white border border-gray-200 rounded-lg transition-all disabled:opacity-50 group/btn"
+      {/* Bottom actions */}
+      <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-2">
+        {/* Want to Read button - bottom left */}
+        <button
+          onClick={(e) => handleQuickAction(e, 'want-to-read')}
           disabled={loading}
-          title="More Options"
+          className={`px-3 py-2 bg-white hover:bg-gray-50 border text-sm font-medium transition-all disabled:opacity-50 flex items-center gap-2 ${
+            isWantToRead ? 'border-gray-600 text-gray-700' : 'border-gray-300 text-gray-600'
+          }`}
         >
-          <svg
-            className="w-4 h-4 text-gray-600 group-hover/btn:text-gray-700"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-            />
-          </svg>
-        </Menu.Trigger>
+          {isWantToRead ? (
+            <>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+              </svg>
+              Remove
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Want to read
+            </>
+          )}
+        </button>
 
-        <Menu.Portal>
-          <Menu.Positioner
-            side="bottom"
-            align="end"
-            sideOffset={4}
-            className="z-50"
+        {/* More Options Menu - bottom right */}
+        <Menu.Root>
+          <Menu.Trigger
+            className="p-2 bg-white hover:bg-gray-50 border border-gray-300 transition-all disabled:opacity-50"
+            disabled={loading}
           >
-            <Menu.Popup className="min-w-[180px] bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
-              <Menu.Item
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleToggleList('reading')
-                }}
-                disabled={loading}
-                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors cursor-pointer outline-none data-[highlighted]:bg-gray-50 flex items-center gap-2"
-              >
-                {isReading && (
-                  <svg className="w-3 h-3 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                )}
-                <span className={isReading ? 'font-semibold' : ''}>Currently Reading</span>
-              </Menu.Item>
-              <Menu.Item
-                onClick={(e) => {
-                  e.stopPropagation()
-                  const url = generateBookUrl(book)
-                  router.push(url)
-                }}
-                disabled={loading}
-                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors cursor-pointer outline-none data-[highlighted]:bg-gray-50"
-              >
-                View Details
-              </Menu.Item>
-            </Menu.Popup>
-          </Menu.Positioner>
-        </Menu.Portal>
-      </Menu.Root>
+            <svg
+              className="w-4 h-4 text-gray-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+              />
+            </svg>
+          </Menu.Trigger>
+
+          <Menu.Portal>
+            <Menu.Positioner
+              side="bottom"
+              align="end"
+              sideOffset={4}
+              className="z-50"
+            >
+              <Menu.Popup className="min-w-[180px] bg-white border border-gray-200 overflow-hidden">
+                <Menu.Item
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleToggleList('reading')
+                  }}
+                  disabled={loading}
+                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors cursor-pointer outline-none data-[highlighted]:bg-gray-50 flex items-center gap-2"
+                >
+                  {isReading && (
+                    <svg className="w-3 h-3 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                  <span className={isReading ? 'font-semibold' : ''}>Currently Reading</span>
+                </Menu.Item>
+                <Menu.Item
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    const url = generateBookUrl(book)
+                    router.push(url)
+                  }}
+                  disabled={loading}
+                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors cursor-pointer outline-none data-[highlighted]:bg-gray-50"
+                >
+                  View Details
+                </Menu.Item>
+              </Menu.Popup>
+            </Menu.Positioner>
+          </Menu.Portal>
+        </Menu.Root>
+      </div>
     </div>
   )
 }

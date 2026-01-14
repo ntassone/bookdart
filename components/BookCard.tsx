@@ -62,9 +62,7 @@ export default function BookCard({ book, onClick, showAddButton = false, onBookA
 
         {/* Action buttons on hover - overlay on cover */}
         {showAddButton && (
-          <div className="absolute bottom-0 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
-            <BookCardActions book={book} onAdded={onBookAdded} />
-          </div>
+          <BookCardActions book={book} onAdded={onBookAdded} />
         )}
       </div>
       <div className="p-4">
