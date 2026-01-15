@@ -80,7 +80,7 @@ export default function FavoriteBooksEditor({
 
             {/* Remove Button */}
             <Tooltip.Root>
-              <Tooltip.Trigger asChild>
+              <Tooltip.Trigger>
                 <button
                   onClick={() => onRemove(book.id)}
                   className="absolute top-2 right-2 p-1.5 bg-white border border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-50"

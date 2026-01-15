@@ -9,9 +9,9 @@ import { getBookInLibrary, getPublicReviewsForBook, getBookReviewStats } from '.
 export async function getBookDetailData(bookId: string): Promise<BookDetail | null> {
   try {
     // Fetch in parallel for performance
-    const [book, userBook, publicReviews, stats] = await Promise.all([
+    const [book, userBooks, publicReviews, stats] = await Promise.all([
       getBookDetails(bookId),
-      getBookInLibrary(bookId).catch(() => null), // User may not be authenticated
+      getBookInLibrary(bookId).catch(() => []), // User may not be authenticated
       getPublicReviewsForBook(bookId),
       getBookReviewStats(bookId),
     ])
@@ -20,7 +20,7 @@ export async function getBookDetailData(bookId: string): Promise<BookDetail | nu
 
     return {
       book,
-      userBook: userBook || undefined,
+      userBooks,
       publicReviews,
       averageRating: stats.averageRating || undefined,
       totalReviews: stats.totalReviews,

@@ -25,12 +25,13 @@ export async function addBookToLibrary(input: AddBookInput): Promise<UserBook> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
-  // Check if book already exists in user's library
-  const existing = await getBookInLibrary(input.book_id)
+  // Check if book already exists in user's library with this status
+  const existingBooks = await getBookInLibrary(input.book_id)
+  const existingWithStatus = existingBooks.find(b => b.status === input.status)
 
-  if (existing) {
-    // Update the existing entry with the new status
-    return updateUserBook(existing.id, { status: input.status })
+  if (existingWithStatus) {
+    // Book already exists with this status, just return it
+    return existingWithStatus
   }
 
   // Insert new book
@@ -77,17 +78,16 @@ export async function removeBookFromLibrary(id: string): Promise<void> {
   if (error) throw error
 }
 
-export async function getBookInLibrary(bookId: string): Promise<UserBook | null> {
+export async function getBookInLibrary(bookId: string): Promise<UserBook[]> {
   const supabase = createClient()
 
   const { data, error } = await supabase
     .from('user_books')
     .select('*')
     .eq('book_id', bookId)
-    .maybeSingle()
 
   if (error) throw error
-  return data
+  return data || []
 }
 
 export async function getPublicReviewsForBook(bookId: string): Promise<PublicReview[]> {

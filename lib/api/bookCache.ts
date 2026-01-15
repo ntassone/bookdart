@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/client'
-import type { Book, CachedBook } from '@/lib/types/book'
+import type { Book } from '@/lib/types/book'
 
 // Cache expiration time: 30 days
 const CACHE_EXPIRATION_DAYS = 30

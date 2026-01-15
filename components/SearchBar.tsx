@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Input } from '@base-ui/react/input'
-import { getRecentSearches, removeRecentSearch, clearRecentSearches } from '@/lib/utils/recentSearches'
-import { getRecentBooks, removeRecentBook, clearRecentBooks } from '@/lib/utils/recentBooks'
+import { getRecentSearchesSync, removeRecentSearch, syncRecentSearches } from '@/lib/utils/recentSearches'
+import { getRecentBooksSync, removeRecentBook, syncRecentBooks } from '@/lib/utils/recentBooks'
 import MiniBookCard from '@/components/MiniBookCard'
 import type { Book } from '@/lib/types/book'
 
@@ -25,8 +25,21 @@ export default function SearchBar({ value, onChange, placeholder = 'Search for b
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    setRecentSearches(getRecentSearches())
-    setRecentBooks(getRecentBooks())
+    // Load from localStorage immediately
+    const initialSearches = getRecentSearchesSync()
+    const initialBooks = getRecentBooksSync()
+    setRecentSearches(initialSearches)
+    setRecentBooks(initialBooks)
+
+    // Sync with database for authenticated users
+    const syncData = async () => {
+      await syncRecentSearches()
+      await syncRecentBooks()
+      // Update state with synced data
+      setRecentSearches(getRecentSearchesSync())
+      setRecentBooks(getRecentBooksSync())
+    }
+    syncData()
   }, [])
 
   useEffect(() => {
@@ -51,25 +64,16 @@ export default function SearchBar({ value, onChange, placeholder = 'Search for b
     setIsFocused(false)
   }
 
-  const handleRemoveSearch = (search: string) => {
-    removeRecentSearch(search)
-    setRecentSearches(getRecentSearches())
+  const handleRemoveSearch = async (search: string) => {
+    await removeRecentSearch(search)
+    setRecentSearches(getRecentSearchesSync())
   }
 
-  const handleRemoveBook = (bookId: string) => {
-    removeRecentBook(bookId)
-    setRecentBooks(getRecentBooks())
+  const handleRemoveBook = async (bookId: string) => {
+    await removeRecentBook(bookId)
+    setRecentBooks(getRecentBooksSync())
   }
 
-  const handleClearSearches = () => {
-    clearRecentSearches()
-    setRecentSearches([])
-  }
-
-  const handleClearBooks = () => {
-    clearRecentBooks()
-    setRecentBooks([])
-  }
 
   const showDropdown = isFocused && !value && (recentSearches.length > 0 || recentBooks.length > 0)
 
@@ -104,33 +108,35 @@ export default function SearchBar({ value, onChange, placeholder = 'Search for b
       {/* Recent Dropdown - Columns on Desktop, Tabs on Mobile */}
       {showDropdown && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
-          {/* Mobile: Tabs */}
-          <div className="md:hidden flex border-b border-gray-200">
-            <button
-              onClick={() => setActiveTab('searches')}
-              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-                activeTab === 'searches'
-                  ? 'text-gray-700 border-b-2 border-gray-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Recent Searches
-            </button>
-            <button
-              onClick={() => setActiveTab('books')}
-              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-                activeTab === 'books'
-                  ? 'text-gray-700 border-b-2 border-gray-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Recently Visited
-            </button>
-          </div>
+          {/* Mobile: Tabs - Only show if both sections have items */}
+          {recentBooks.length > 0 && (
+            <div className="md:hidden flex border-b border-gray-200">
+              <button
+                onClick={() => setActiveTab('searches')}
+                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                  activeTab === 'searches'
+                    ? 'text-gray-700 border-b-2 border-gray-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Recent Searches
+              </button>
+              <button
+                onClick={() => setActiveTab('books')}
+                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                  activeTab === 'books'
+                    ? 'text-gray-700 border-b-2 border-gray-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Recently Visited
+              </button>
+            </div>
+          )}
 
           {/* Mobile: Tab Content */}
           <div className="md:hidden max-h-[400px] overflow-y-auto">
-            {activeTab === 'searches' && (
+            {(activeTab === 'searches' || recentBooks.length === 0) && (
               <>
                 {recentSearches.length > 0 ? (
                   <ul>
@@ -167,33 +173,25 @@ export default function SearchBar({ value, onChange, placeholder = 'Search for b
               </>
             )}
 
-            {activeTab === 'books' && (
-              <>
-                {recentBooks.length > 0 ? (
-                  <ul>
-                    {recentBooks.map((book) => (
-                      <li key={book.id}>
-                        <MiniBookCard
-                          book={book}
-                          onClick={() => handleSelectBook(book)}
-                          onDismiss={() => handleRemoveBook(book.id)}
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="px-4 py-8 text-center text-sm text-gray-500">
-                    No recently visited books
-                  </div>
-                )}
-              </>
+            {activeTab === 'books' && recentBooks.length > 0 && (
+              <ul>
+                {recentBooks.map((book) => (
+                  <li key={book.id}>
+                    <MiniBookCard
+                      book={book}
+                      onClick={() => handleSelectBook(book)}
+                      onDismiss={() => handleRemoveBook(book.id)}
+                    />
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
 
-          {/* Desktop: Two Column Layout */}
-          <div className="hidden md:grid md:grid-cols-2 max-h-[400px]">
+          {/* Desktop: Column Layout */}
+          <div className={`hidden md:grid max-h-[400px] overflow-hidden ${recentBooks.length > 0 ? 'md:grid-cols-2' : 'md:grid-cols-1'}`}>
             {/* Recent Searches Column */}
-            <div className="border-r border-gray-200 overflow-y-auto">
+            <div className={`overflow-y-auto ${recentBooks.length > 0 ? 'border-r border-gray-200' : ''}`}>
               {recentSearches.length > 0 ? (
                 <ul>
                   {recentSearches.map((search, index) => (
@@ -228,9 +226,9 @@ export default function SearchBar({ value, onChange, placeholder = 'Search for b
               )}
             </div>
 
-            {/* Recently Visited Books Column */}
-            <div className="overflow-y-auto">
-              {recentBooks.length > 0 ? (
+            {/* Recently Visited Books Column - Only show if there are books */}
+            {recentBooks.length > 0 && (
+              <div className="overflow-y-auto">
                 <ul>
                   {recentBooks.map((book) => (
                     <li key={book.id}>
@@ -242,12 +240,8 @@ export default function SearchBar({ value, onChange, placeholder = 'Search for b
                     </li>
                   ))}
                 </ul>
-              ) : (
-                <div className="px-4 py-8 text-center text-sm text-gray-500">
-                  No recently visited books
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       )}

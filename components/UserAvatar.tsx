@@ -27,7 +27,7 @@ export default function UserAvatar() {
         fadeCompletedBooks ? 'Completed books will show normally' : 'Completed books will fade',
         'success'
       )
-    } catch (error) {
+    } catch {
       addToast('Failed to update setting', 'error')
     }
   }
@@ -48,7 +48,7 @@ export default function UserAvatar() {
       </Menu.Trigger>
 
       <Menu.Portal>
-        <Menu.Positioner side="bottom" alignment="end" sideOffset={8}>
+        <Menu.Positioner side="bottom" align="end" sideOffset={8}>
           <Menu.Popup className="bg-white border border-gray-200 rounded-lg shadow-lg min-w-[220px] py-2 z-50">
             <div className="px-4 py-2 border-b border-gray-100">
               <p className="text-sm text-gray-600 truncate">{user.email}</p>
@@ -62,17 +62,17 @@ export default function UserAvatar() {
                 </p>
               </div>
               <button
-                className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors outline-none flex items-center justify-between"
+                className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors outline-none flex items-center justify-between gap-3"
                 onClick={handleToggleFade}
                 type="button"
               >
                 <span>Fade completed books</span>
-                <div className={`w-9 h-5 rounded-full transition-colors ${
+                <div className={`relative w-9 h-5 rounded-full transition-colors flex items-center flex-shrink-0 ${
                   fadeCompletedBooks ? 'bg-gray-600' : 'bg-gray-300'
                 }`}>
-                  <div className={`w-4 h-4 bg-white rounded-full transition-transform transform ${
-                    fadeCompletedBooks ? 'translate-x-4' : 'translate-x-0.5'
-                  } mt-0.5`} />
+                  <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform transform ${
+                    fadeCompletedBooks ? 'translate-x-[1.125rem]' : 'translate-x-0.5'
+                  }`} />
                 </div>
               </button>
             </div>

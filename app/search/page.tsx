@@ -120,7 +120,7 @@ export default function SearchPage() {
               <Menu.Root>
                 <Menu.Trigger className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-lg hover:bg-gray-50 transition-colors text-sm text-gray-700">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                   </svg>
                   <span>Filter Results</span>
                   {!showDerivatives && (
@@ -144,30 +144,28 @@ export default function SearchPage() {
                         </p>
                       </div>
                       <Menu.Item
-                        onClick={() => setShowDerivatives(!showDerivatives)}
-                        className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors cursor-pointer outline-none data-[highlighted]:bg-gray-50 flex items-center justify-between"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          setShowDerivatives(!showDerivatives)
+                        }}
+                        closeOnClick={false}
+                        className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors cursor-pointer outline-none data-[highlighted]:bg-gray-50 flex items-center justify-between gap-3"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-4 h-4 border-2 rounded flex items-center justify-center ${
-                            showDerivatives ? 'bg-gray-600 border-gray-600' : 'border-gray-300'
-                          }`}>
-                            {showDerivatives && (
-                              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                              </svg>
-                            )}
-                          </div>
-                          <span className="text-gray-700">Show summaries & guides</span>
+                        <span className="text-gray-700">Show summaries & guides</span>
+                        <div className={`relative w-9 h-5 rounded-full transition-colors flex items-center flex-shrink-0 ${
+                          showDerivatives ? 'bg-gray-600' : 'bg-gray-300'
+                        }`}>
+                          <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform transform ${
+                            showDerivatives ? 'translate-x-[1.125rem]' : 'translate-x-0.5'
+                          }`} />
                         </div>
-                        {!showDerivatives && (
-                          <span className="text-xs text-gray-500">
-                            {derivativeWorks.length} hidden
-                          </span>
-                        )}
                       </Menu.Item>
                       <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
                         <p className="text-xs text-gray-600">
                           Showing {displayedBooks.length} of {books.length} results
+                          {!showDerivatives && derivativeWorks.length > 0 && (
+                            <> ({derivativeWorks.length} hidden)</>
+                          )}
                         </p>
                       </div>
                     </Menu.Popup>

@@ -24,7 +24,10 @@ export default function BookDetailClient({ initialData }: BookDetailClientProps)
   const router = useRouter()
   const [bookDetail] = useState(initialData)
   const [isEditingReview, setIsEditingReview] = useState(false)
-  const { book, userBook, publicReviews, averageRating, totalReviews } = bookDetail
+  const { book, userBooks, publicReviews, averageRating, totalReviews } = bookDetail
+
+  // Get the 'read' status entry for reviewing (book detail page is for viewing/editing reviews)
+  const userBook = userBooks.find(ub => ub.status === 'read')
 
   // Add book to recently visited when component mounts
   useEffect(() => {

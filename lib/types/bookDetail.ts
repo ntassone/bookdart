@@ -3,7 +3,7 @@ import type { UserBook, PublicReview } from './userBook'
 
 export interface BookDetail {
   book: Book
-  userBook?: UserBook
+  userBooks: UserBook[]
   publicReviews: PublicReview[]
   averageRating?: number
   totalReviews: number

@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/lib/contexts/ToastContext'
 import { useReadBooks } from '@/lib/contexts/ReadBooksContext'
-import { addBookToLibrary, getBookInLibrary, removeBookFromList } from '@/lib/api/userBooks'
+import { addBookToLibrary, getBookInLibrary, removeBookFromLibrary } from '@/lib/api/userBooks'
 import { generateBookUrl } from '@/lib/utils/bookUrl'
 import type { Book } from '@/lib/types/book'
 import type { BookStatus, UserBook } from '@/lib/types/userBook'
@@ -51,7 +51,7 @@ export default function BookCardActions({ book, onAdded }: BookCardActionsProps)
 
       // If book is already in this list, remove it
       if (bookInList) {
-        await removeBookFromList(book.id, status)
+        await removeBookFromLibrary(bookInList.id)
         setUserBooks(userBooks.filter(b => b.status !== status))
 
         // Update ReadBooksContext
@@ -115,8 +115,8 @@ export default function BookCardActions({ book, onAdded }: BookCardActionsProps)
     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
       {/* Read checkbox - top right */}
       <div className="absolute top-2 right-2">
-        <Tooltip.Root openDelay={100} closeDelay={0}>
-          <Tooltip.Trigger asChild>
+        <Tooltip.Root>
+          <Tooltip.Trigger>
             <button
               onClick={(e) => handleQuickAction(e, 'read')}
               disabled={loading}

@@ -9,7 +9,6 @@ export default function AuthRedirect() {
 
   useEffect(() => {
     const code = searchParams.get('code')
-    const type = searchParams.get('type')
 
     // If there's an auth code in the URL, redirect to callback
     if (code) {

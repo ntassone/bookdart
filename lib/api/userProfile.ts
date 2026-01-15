@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
 import type { UserProfile, UpdateProfileInput } from '@/lib/types/userProfile'
+import type { Book } from '@/lib/types/book'
 
 /**
  * Get the current user's profile
@@ -129,5 +130,75 @@ export async function reorderFavorites(bookIds: string[]): Promise<UserProfile |
 export async function updateFadeCompletedBooks(fadeCompleted: boolean): Promise<UserProfile | null> {
   return await updateUserProfile({
     fade_completed_books: fadeCompleted
+  })
+}
+
+/**
+ * Add a search query to recent searches (max 5)
+ */
+export async function addRecentSearch(query: string): Promise<UserProfile | null> {
+  if (!query.trim()) return null
+
+  const profile = await getUserProfile()
+  if (!profile) return null
+
+  const searches = profile.recent_searches || []
+
+  // Remove if already exists (to move it to the front)
+  const filtered = searches.filter(s => s.toLowerCase() !== query.toLowerCase())
+
+  // Add to front, limit to 5
+  const updated = [query, ...filtered].slice(0, 5)
+
+  return await updateUserProfile({
+    recent_searches: updated
+  })
+}
+
+/**
+ * Remove a search query from recent searches
+ */
+export async function removeRecentSearch(query: string): Promise<UserProfile | null> {
+  const profile = await getUserProfile()
+  if (!profile) return null
+
+  const searches = profile.recent_searches || []
+
+  return await updateUserProfile({
+    recent_searches: searches.filter(s => s !== query)
+  })
+}
+
+/**
+ * Add a book to recent books (max 10)
+ */
+export async function addRecentBook(book: Book): Promise<UserProfile | null> {
+  const profile = await getUserProfile()
+  if (!profile) return null
+
+  const books = profile.recent_books || []
+
+  // Remove if already exists
+  const filtered = books.filter(b => b.id !== book.id)
+
+  // Add to beginning, limit to 10
+  const updated = [book, ...filtered].slice(0, 10)
+
+  return await updateUserProfile({
+    recent_books: updated
+  })
+}
+
+/**
+ * Remove a book from recent books
+ */
+export async function removeRecentBook(bookId: string): Promise<UserProfile | null> {
+  const profile = await getUserProfile()
+  if (!profile) return null
+
+  const books = profile.recent_books || []
+
+  return await updateUserProfile({
+    recent_books: books.filter(b => b.id !== bookId)
   })
 }

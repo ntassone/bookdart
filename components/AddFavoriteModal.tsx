@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { Dialog } from '@base-ui/react/dialog'
-import BookCard from './BookCard'
 import type { Book } from '@/lib/types/book'
 import type { UserBook } from '@/lib/types/userBook'
 import { getUserBooks } from '@/lib/api/userBooks'
