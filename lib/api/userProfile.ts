@@ -202,3 +202,62 @@ export async function removeRecentBook(bookId: string): Promise<UserProfile | nu
     recent_books: books.filter(b => b.id !== bookId)
   })
 }
+
+/**
+ * Check if a username is available
+ */
+export async function checkUsernameAvailability(username: string): Promise<boolean> {
+  const supabase = createClient()
+
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .select('username')
+    .eq('username', username)
+    .maybeSingle()
+
+  if (error) {
+    console.error('Error checking username availability:', error)
+    return false
+  }
+
+  return data === null
+}
+
+/**
+ * Set username for the current user
+ */
+export async function setUsername(username: string): Promise<UserProfile | null> {
+  // Validate username format
+  const usernameRegex = /^[a-zA-Z0-9_-]{3,30}$/
+  if (!usernameRegex.test(username)) {
+    throw new Error('Username must be 3-30 characters and contain only letters, numbers, underscores, and hyphens')
+  }
+
+  // Check availability
+  const isAvailable = await checkUsernameAvailability(username)
+  if (!isAvailable) {
+    throw new Error('Username is already taken')
+  }
+
+  return await updateUserProfile({ username })
+}
+
+/**
+ * Get a user profile by username
+ */
+export async function getUserProfileByUsername(username: string): Promise<UserProfile | null> {
+  const supabase = createClient()
+
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .select('*')
+    .eq('username', username)
+    .single()
+
+  if (error) {
+    console.error('Error fetching profile by username:', error)
+    return null
+  }
+
+  return data
+}

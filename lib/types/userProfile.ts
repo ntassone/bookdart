@@ -3,6 +3,7 @@ import type { Book } from './book'
 export interface UserProfile {
   id: string
   user_id: string
+  username: string | null
   favorite_books: string[]
   fade_completed_books: boolean
   recent_searches: string[]
@@ -12,6 +13,7 @@ export interface UserProfile {
 }
 
 export interface UpdateProfileInput {
+  username?: string
   favorite_books?: string[]
   fade_completed_books?: boolean
   recent_searches?: string[]

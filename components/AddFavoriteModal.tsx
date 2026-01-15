@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Dialog } from '@base-ui/react/dialog'
+import LoadingIndicator from '@/components/LoadingIndicator'
 import type { Book } from '@/lib/types/book'
 import type { UserBook } from '@/lib/types/userBook'
 import { getUserBooks } from '@/lib/api/userBooks'
@@ -72,7 +73,7 @@ export default function AddFavoriteModal({
           <div className="flex-1 overflow-y-auto p-6">
             {loading ? (
               <div className="flex justify-center py-20">
-                <div className="animate-spin h-12 w-12 border-b-2 border-gray-600"></div>
+                <LoadingIndicator size="lg" />
               </div>
             ) : availableBooks.length === 0 ? (
               <div className="text-center py-20">

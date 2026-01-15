@@ -5,6 +5,7 @@ import { Menu } from '@base-ui/react/menu';
 import Navigation from '@/components/Navigation';
 import SearchBar from '@/components/SearchBar';
 import BookCard from '@/components/BookCard';
+import LoadingIndicator from '@/components/LoadingIndicator';
 import { searchBooks } from '@/lib/api/openLibrary';
 import { addRecentSearch } from '@/lib/utils/recentSearches';
 import { separateDerivativeWorks } from '@/lib/utils/bookFilters';
@@ -94,7 +95,7 @@ export default function SearchPage() {
           {/* Loading State */}
           {loading && (
             <div className="flex justify-center items-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600"></div>
+              <LoadingIndicator size="lg" />
             </div>
           )}
 

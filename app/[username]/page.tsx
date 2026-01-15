@@ -11,13 +11,19 @@ import CurrentlyReadingSection from '@/components/CurrentlyReadingSection'
 import AddFavoriteModal from '@/components/AddFavoriteModal'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { getUserBooks } from '@/lib/api/userBooks'
-import { getUserProfile, addToFavorites, removeFromFavorites, reorderFavorites } from '@/lib/api/userProfile'
+import { getUserProfile, getUserProfileByUsername, addToFavorites, removeFromFavorites, reorderFavorites } from '@/lib/api/userProfile'
 import { getCachedBooks } from '@/lib/api/bookCache'
 import type { UserBook, BookStatus } from '@/lib/types/userBook'
 import type { Book } from '@/lib/types/book'
 import type { UserProfile } from '@/lib/types/userProfile'
 
-export default function MyBooksPage() {
+interface ProfilePageProps {
+  params: {
+    username: string
+  }
+}
+
+export default function ProfilePage({ params }: ProfilePageProps) {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { addToast } = useToast()
@@ -25,36 +31,69 @@ export default function MyBooksPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<BookStatus | 'all'>('all')
   const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [currentUserProfile, setCurrentUserProfile] = useState<UserProfile | null>(null)
   const [favoriteBooks, setFavoriteBooks] = useState<Book[]>([])
   const [currentlyReading, setCurrentlyReading] = useState<Book[]>([])
   const [showAddFavoriteModal, setShowAddFavoriteModal] = useState(false)
+  const [isOwnProfile, setIsOwnProfile] = useState(false)
 
+  // Check if viewing own profile
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/auth/signin')
-    }
-  }, [user, authLoading, router])
+    const checkProfileOwnership = async () => {
+      if (!user) {
+        setIsOwnProfile(false)
+        return
+      }
 
-  useEffect(() => {
-    if (user) {
-      loadData()
+      const currentProfile = await getUserProfile()
+      setCurrentUserProfile(currentProfile)
+
+      if (currentProfile && currentProfile.username === params.username) {
+        setIsOwnProfile(true)
+      } else {
+        setIsOwnProfile(false)
+      }
     }
-  }, [user, filter])
+
+    if (!authLoading) {
+      checkProfileOwnership()
+    }
+  }, [user, authLoading, params.username])
+
+  // Load profile data
+  useEffect(() => {
+    loadData()
+  }, [params.username, filter])
 
   const loadData = async () => {
     setLoading(true)
     try {
-      // Load user profile and books in parallel
-      const [profileData, booksData] = await Promise.all([
-        getUserProfile(),
-        getUserBooks(filter === 'all' ? undefined : filter)
-      ])
+      // Load profile by username
+      const profileData = await getUserProfileByUsername(params.username)
+
+      if (!profileData) {
+        setLoading(false)
+        return
+      }
 
       setProfile(profileData)
-      setBooks(booksData)
+
+      // Load books for this user
+      // Note: This will need to be updated to support fetching other users' books
+      // For now, it only works for own profile
+      if (isOwnProfile) {
+        const booksData = await getUserBooks(filter === 'all' ? undefined : filter)
+        setBooks(booksData)
+
+        // Extract currently reading books
+        const readingBooks = booksData
+          .filter(b => b.status === 'reading')
+          .map(convertToBook)
+        setCurrentlyReading(readingBooks)
+      }
 
       // Load favorite books from cache
-      if (profileData && profileData.favorite_books.length > 0) {
+      if (profileData.favorite_books.length > 0) {
         const cachedBooks = await getCachedBooks(profileData.favorite_books)
         const favorites = profileData.favorite_books
           .map(id => cachedBooks.get(id))
@@ -64,12 +103,6 @@ export default function MyBooksPage() {
         setFavoriteBooks([])
       }
 
-      // Extract currently reading books
-      const readingBooks = booksData
-        .filter(b => b.status === 'reading')
-        .map(convertToBook)
-      setCurrentlyReading(readingBooks)
-
     } catch (error) {
       console.error('Failed to load data:', error)
     } finally {
@@ -78,6 +111,8 @@ export default function MyBooksPage() {
   }
 
   const handleAddFavorite = async (book: Book) => {
+    if (!isOwnProfile) return
+
     try {
       await addToFavorites(book.id)
       await loadData()
@@ -88,6 +123,8 @@ export default function MyBooksPage() {
   }
 
   const handleRemoveFavorite = async (bookId: string) => {
+    if (!isOwnProfile) return
+
     try {
       await removeFromFavorites(bookId)
       await loadData()
@@ -98,6 +135,8 @@ export default function MyBooksPage() {
   }
 
   const handleReorderFavorites = async (bookIds: string[]) => {
+    if (!isOwnProfile) return
+
     try {
       await reorderFavorites(bookIds)
       // Optimistically update UI
@@ -122,7 +161,12 @@ export default function MyBooksPage() {
     isbn: userBook.isbn,
   })
 
-  if (authLoading || !user) {
+  // Get filtered books for the list section (exclude currently reading from the main list)
+  const filteredBooks = filter === 'all'
+    ? books.filter(b => b.status !== 'reading')
+    : books
+
+  if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navigation />
@@ -133,10 +177,25 @@ export default function MyBooksPage() {
     )
   }
 
-  // Get filtered books for the list section (exclude currently reading from the main list)
-  const filteredBooks = filter === 'all'
-    ? books.filter(b => b.status !== 'reading')
-    : books
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navigation />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-700 mb-2">User not found</h1>
+            <p className="text-gray-600 mb-4">No user with username @{params.username}</p>
+            <button
+              onClick={() => router.push('/')}
+              className="text-gray-700 font-semibold hover:text-gray-600 transition-colors"
+            >
+              Go home →
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -145,33 +204,33 @@ export default function MyBooksPage() {
       <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-700 mb-2">My Books</h1>
-          <p className="text-gray-600">{user.email}</p>
+          <h1 className="text-4xl font-bold text-gray-700 mb-2">
+            {isOwnProfile ? 'My Books' : `@${profile.username}`}
+          </h1>
+          {isOwnProfile && user && (
+            <p className="text-gray-600">{user.email}</p>
+          )}
         </div>
 
-        {loading ? (
-          <div className="flex justify-center py-20">
-            <LoadingIndicator size="lg" />
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {/* Favorite Books Billboard */}
-            <FavoriteBooksEditor
-              favoriteBooks={favoriteBooks}
-              onReorder={handleReorderFavorites}
-              onRemove={handleRemoveFavorite}
-              onAddClick={() => setShowAddFavoriteModal(true)}
+        <div className="space-y-8">
+          {/* Favorite Books Billboard */}
+          <FavoriteBooksEditor
+            favoriteBooks={favoriteBooks}
+            onReorder={isOwnProfile ? handleReorderFavorites : undefined}
+            onRemove={isOwnProfile ? handleRemoveFavorite : undefined}
+            onAddClick={isOwnProfile ? () => setShowAddFavoriteModal(true) : undefined}
+          />
+
+          {/* Currently Reading - Only show on own profile for now */}
+          {isOwnProfile && currentlyReading.length > 0 && (
+            <CurrentlyReadingSection
+              books={currentlyReading}
+              onBookAdded={loadData}
             />
+          )}
 
-            {/* Currently Reading */}
-            {currentlyReading.length > 0 && (
-              <CurrentlyReadingSection
-                books={currentlyReading}
-                onBookAdded={loadData}
-              />
-            )}
-
-            {/* Book Lists */}
+          {/* Book Lists - Only show on own profile for now */}
+          {isOwnProfile && (
             <div className="border border-gray-200 p-6 bg-white">
               <div className="mb-6">
                 <h2 className="text-xl font-bold text-gray-700 mb-4">My Lists</h2>
@@ -234,17 +293,28 @@ export default function MyBooksPage() {
                 </div>
               )}
             </div>
-          </div>
-        )}
+          )}
+
+          {/* Message for viewing other profiles - temporary */}
+          {!isOwnProfile && (
+            <div className="border border-gray-200 p-6 bg-white text-center py-12">
+              <p className="text-gray-600">
+                Public profile viewing coming soon
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Add Favorite Modal */}
-      <AddFavoriteModal
-        open={showAddFavoriteModal}
-        onClose={() => setShowAddFavoriteModal(false)}
-        onSelect={handleAddFavorite}
-        currentFavorites={profile?.favorite_books || []}
-      />
+      {/* Add Favorite Modal - Only for own profile */}
+      {isOwnProfile && (
+        <AddFavoriteModal
+          open={showAddFavoriteModal}
+          onClose={() => setShowAddFavoriteModal(false)}
+          onSelect={handleAddFavorite}
+          currentFavorites={profile?.favorite_books || []}
+        />
+      )}
     </div>
   )
 }
