@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Menu } from '@base-ui/react/menu'
 import { useAuth } from '@/lib/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
+import { useReadBooks } from '@/lib/contexts/ReadBooksContext'
 import { addBookToLibrary } from '@/lib/api/userBooks'
 import type { Book } from '@/lib/types/book'
 import type { BookStatus } from '@/lib/types/userBook'
@@ -16,6 +17,7 @@ interface AddToLibraryButtonProps {
 export default function AddToLibraryButton({ book, onAdded }: AddToLibraryButtonProps) {
   const { user } = useAuth()
   const router = useRouter()
+  const { addReadBook } = useReadBooks()
   const [loading, setLoading] = useState(false)
 
   const handleAddToList = async (status: BookStatus) => {
@@ -35,6 +37,12 @@ export default function AddToLibraryButton({ book, onAdded }: AddToLibraryButton
         cover_url: book.coverUrl,
         isbn: book.isbn,
       })
+
+      // Update ReadBooksContext if adding to read list
+      if (status === 'read') {
+        addReadBook(book.id)
+      }
+
       onAdded?.()
     } catch (error) {
       console.error('Failed to add book:', error)

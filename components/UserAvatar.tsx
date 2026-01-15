@@ -4,14 +4,32 @@ import { Avatar } from '@base-ui/react/avatar'
 import { Menu } from '@base-ui/react/menu'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/contexts/AuthContext'
+import { useUserPreferences } from '@/lib/contexts/UserPreferencesContext'
+import { useToast } from '@/lib/contexts/ToastContext'
 
 export default function UserAvatar() {
   const { user, signOut } = useAuth()
   const router = useRouter()
+  const { fadeCompletedBooks, setFadeCompletedBooks } = useUserPreferences()
+  const { addToast } = useToast()
 
   const handleSignOut = async () => {
     await signOut()
     router.push('/')
+  }
+
+  const handleToggleFade = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    try {
+      await setFadeCompletedBooks(!fadeCompletedBooks)
+      addToast(
+        fadeCompletedBooks ? 'Completed books will show normally' : 'Completed books will fade',
+        'success'
+      )
+    } catch (error) {
+      addToast('Failed to update setting', 'error')
+    }
   }
 
   if (!user) return null
@@ -31,10 +49,34 @@ export default function UserAvatar() {
 
       <Menu.Portal>
         <Menu.Positioner side="bottom" alignment="end" sideOffset={8}>
-          <Menu.Popup className="bg-white border border-gray-200 rounded-lg shadow-lg min-w-[200px] py-2 z-50">
+          <Menu.Popup className="bg-white border border-gray-200 rounded-lg shadow-lg min-w-[220px] py-2 z-50">
             <div className="px-4 py-2 border-b border-gray-100">
               <p className="text-sm text-gray-600 truncate">{user.email}</p>
             </div>
+
+            {/* Settings Section */}
+            <div className="py-2 border-b border-gray-100">
+              <div className="px-4 py-1">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                  Settings
+                </p>
+              </div>
+              <button
+                className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors outline-none flex items-center justify-between"
+                onClick={handleToggleFade}
+                type="button"
+              >
+                <span>Fade completed books</span>
+                <div className={`w-9 h-5 rounded-full transition-colors ${
+                  fadeCompletedBooks ? 'bg-gray-600' : 'bg-gray-300'
+                }`}>
+                  <div className={`w-4 h-4 bg-white rounded-full transition-transform transform ${
+                    fadeCompletedBooks ? 'translate-x-4' : 'translate-x-0.5'
+                  } mt-0.5`} />
+                </div>
+              </button>
+            </div>
+
             <Menu.Item
               className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors outline-none"
               onClick={handleSignOut}

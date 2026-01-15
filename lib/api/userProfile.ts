@@ -122,3 +122,12 @@ export async function reorderFavorites(bookIds: string[]): Promise<UserProfile |
     favorite_books: bookIds
   })
 }
+
+/**
+ * Update fade completed books setting
+ */
+export async function updateFadeCompletedBooks(fadeCompleted: boolean): Promise<UserProfile | null> {
+  return await updateUserProfile({
+    fade_completed_books: fadeCompleted
+  })
+}

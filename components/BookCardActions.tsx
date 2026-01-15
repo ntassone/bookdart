@@ -6,7 +6,8 @@ import { Tooltip } from '@base-ui/react/tooltip'
 import { useAuth } from '@/lib/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/lib/contexts/ToastContext'
-import { addBookToLibrary, getBookInLibrary, removeBookFromLibrary } from '@/lib/api/userBooks'
+import { useReadBooks } from '@/lib/contexts/ReadBooksContext'
+import { addBookToLibrary, getBookInLibrary, removeBookFromList } from '@/lib/api/userBooks'
 import { generateBookUrl } from '@/lib/utils/bookUrl'
 import type { Book } from '@/lib/types/book'
 import type { BookStatus, UserBook } from '@/lib/types/userBook'
@@ -28,12 +29,13 @@ export default function BookCardActions({ book, onAdded }: BookCardActionsProps)
   const { user } = useAuth()
   const router = useRouter()
   const { addToast } = useToast()
+  const { addReadBook, removeReadBook } = useReadBooks()
   const [loading, setLoading] = useState(false)
-  const [userBook, setUserBook] = useState<UserBook | null>(null)
+  const [userBooks, setUserBooks] = useState<UserBook[]>([])
 
   useEffect(() => {
     if (user) {
-      getBookInLibrary(book.id).then(setUserBook).catch(() => setUserBook(null))
+      getBookInLibrary(book.id).then(setUserBooks).catch(() => setUserBooks([]))
     }
   }, [user, book.id])
 
@@ -45,14 +47,27 @@ export default function BookCardActions({ book, onAdded }: BookCardActionsProps)
 
     setLoading(true)
     try {
+      const bookInList = userBooks.find(b => b.status === status)
+
       // If book is already in this list, remove it
-      if (userBook?.status === status) {
-        await removeBookFromLibrary(userBook.id)
-        setUserBook(null)
-        addToast('Removed from your library', 'success')
+      if (bookInList) {
+        await removeBookFromList(book.id, status)
+        setUserBooks(userBooks.filter(b => b.status !== status))
+
+        // Update ReadBooksContext
+        if (status === 'read') {
+          removeReadBook(book.id)
+        }
+
+        const removeLabels: Record<BookStatus, string> = {
+          'read': 'Removed from Read',
+          'want-to-read': 'Removed from Want to Read',
+          'reading': 'Removed from Currently Reading'
+        }
+        addToast(removeLabels[status], 'success')
         onAdded?.()
       } else {
-        // Otherwise, add it to this list (or move it from another list)
+        // Add it to this list
         await addBookToLibrary({
           book_id: book.id,
           status,
@@ -64,14 +79,19 @@ export default function BookCardActions({ book, onAdded }: BookCardActionsProps)
         })
         // Refresh to get updated list status
         const updated = await getBookInLibrary(book.id)
-        setUserBook(updated)
+        setUserBooks(updated)
 
-        const statusLabels: Record<BookStatus, string> = {
+        // Update ReadBooksContext
+        if (status === 'read') {
+          addReadBook(book.id)
+        }
+
+        const addLabels: Record<BookStatus, string> = {
           'read': 'Added to Read',
           'want-to-read': 'Added to Want to Read',
           'reading': 'Added to Currently Reading'
         }
-        addToast(statusLabels[status], 'success')
+        addToast(addLabels[status], 'success')
         onAdded?.()
       }
     } catch (error) {
@@ -87,9 +107,9 @@ export default function BookCardActions({ book, onAdded }: BookCardActionsProps)
     await handleToggleList(status)
   }
 
-  const isWantToRead = userBook?.status === 'want-to-read'
-  const isRead = userBook?.status === 'read'
-  const isReading = userBook?.status === 'reading'
+  const isWantToRead = userBooks.some(b => b.status === 'want-to-read')
+  const isRead = userBooks.some(b => b.status === 'read')
+  const isReading = userBooks.some(b => b.status === 'reading')
 
   return (
     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
@@ -158,6 +178,7 @@ export default function BookCardActions({ book, onAdded }: BookCardActionsProps)
         {/* More Options Menu - bottom right */}
         <Menu.Root>
           <Menu.Trigger
+            onClick={(e) => e.stopPropagation()}
             className="p-2 bg-white hover:bg-gray-50 border border-gray-300 transition-all disabled:opacity-50"
             disabled={loading}
           >

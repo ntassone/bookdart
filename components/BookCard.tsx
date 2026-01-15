@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import type { Book } from '@/lib/types/book';
 import BookCardActions from './BookCardActions';
 import { generateBookUrl } from '@/lib/utils/bookUrl';
+import { useUserPreferences } from '@/lib/contexts/UserPreferencesContext';
+import { useReadBooks } from '@/lib/contexts/ReadBooksContext';
 
 interface BookCardProps {
   book: Book;
@@ -16,7 +18,12 @@ interface BookCardProps {
 
 export default function BookCard({ book, onClick, showAddButton = false, onBookAdded, showPublishYear = true }: BookCardProps) {
   const router = useRouter();
+  const { fadeCompletedBooks } = useUserPreferences();
+  const { readBookIds } = useReadBooks();
   const authors = book.authors.join(', ') || 'Unknown Author';
+
+  // Check if book is in the read list
+  const isRead = readBookIds.has(book.id);
 
   const handleClick = () => {
     if (onClick) {
@@ -34,33 +41,36 @@ export default function BookCard({ book, onClick, showAddButton = false, onBookA
       className="bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all group cursor-pointer relative overflow-hidden"
     >
       <div className="relative aspect-[2/3] bg-gray-100 overflow-hidden">
-        {book.coverUrl ? (
-          <Image
-            src={book.coverUrl}
-            alt={`${book.title} cover`}
-            fill
-            className="object-cover"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 20vw"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400">
-            <svg
-              className="w-16 h-16"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-              />
-            </svg>
-          </div>
-        )}
+        {/* Faded image layer */}
+        <div className={`absolute inset-0 transition-opacity ${isRead && fadeCompletedBooks ? 'opacity-40' : 'opacity-100'}`}>
+          {book.coverUrl ? (
+            <Image
+              src={book.coverUrl}
+              alt={`${book.title} cover`}
+              fill
+              className="object-cover"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 20vw"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-400">
+              <svg
+                className="w-16 h-16"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                />
+              </svg>
+            </div>
+          )}
+        </div>
 
-        {/* Action buttons on hover - overlay on cover */}
+        {/* Action buttons on hover - overlay on cover at full opacity */}
         {showAddButton && (
           <BookCardActions book={book} onAdded={onBookAdded} />
         )}
