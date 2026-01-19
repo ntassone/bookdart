@@ -88,7 +88,7 @@ export default function AddToLibraryButton({ book, onAdded }: AddToLibraryButton
               disabled={loading}
               className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors cursor-pointer outline-none data-[highlighted]:bg-gray-50"
             >
-              Currently Reading
+              Reading Now
             </Menu.Item>
             <Menu.Item
               onClick={(e) => {

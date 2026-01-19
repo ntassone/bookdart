@@ -1,6 +1,6 @@
 'use client'
 
-import BookCard from './BookCard'
+import CompactBookCard from './CompactBookCard'
 import type { Book } from '@/lib/types/book'
 
 interface CurrentlyReadingSectionProps {
@@ -12,24 +12,24 @@ interface CurrentlyReadingSectionProps {
  * Displays books the user is currently reading
  */
 export default function CurrentlyReadingSection({ books, onBookAdded }: CurrentlyReadingSectionProps) {
-  if (books.length === 0) {
-    return null
-  }
+  // Show the first book or a placeholder
+  const currentBook = books[0] || null
 
   return (
-    <div className="border border-gray-200 p-6 bg-white">
-      <h2 className="text-xl font-bold text-gray-700 mb-4">Currently Reading</h2>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {books.map((book) => (
-          <BookCard
-            key={book.id}
-            book={book}
-            showAddButton={true}
-            onBookAdded={onBookAdded}
-          />
-        ))}
-      </div>
+    <div className="space-y-4">
+      <h2 className="text-xl font-bold text-gray-700 whitespace-nowrap">Reading Now</h2>
+      {currentBook ? (
+        <CompactBookCard
+          key={currentBook.id}
+          book={currentBook}
+          showAddButton={true}
+          onBookAdded={onBookAdded}
+          hideWantToRead={true}
+        />
+      ) : (
+        // Empty placeholder matching favorite book style
+        <div className="aspect-[2/3] border border-gray-300 bg-gray-400 opacity-30" />
+      )}
     </div>
   )
 }

@@ -31,7 +31,6 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<BookStatus | 'all'>('all')
   const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [currentUserProfile, setCurrentUserProfile] = useState<UserProfile | null>(null)
   const [favoriteBooks, setFavoriteBooks] = useState<Book[]>([])
   const [currentlyReading, setCurrentlyReading] = useState<Book[]>([])
   const [showAddFavoriteModal, setShowAddFavoriteModal] = useState(false)
@@ -46,7 +45,6 @@ export default function ProfilePage({ params }: ProfilePageProps) {
       }
 
       const currentProfile = await getUserProfile()
-      setCurrentUserProfile(currentProfile)
 
       if (currentProfile && currentProfile.username === params.username) {
         setIsOwnProfile(true)
@@ -63,7 +61,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   // Load profile data
   useEffect(() => {
     loadData()
-  }, [params.username, filter])
+  }, [params.username, filter, isOwnProfile])
 
   const loadData = async () => {
     setLoading(true)
@@ -90,6 +88,10 @@ export default function ProfilePage({ params }: ProfilePageProps) {
           .filter(b => b.status === 'reading')
           .map(convertToBook)
         setCurrentlyReading(readingBooks)
+      } else {
+        // Clear books when viewing someone else's profile
+        setBooks([])
+        setCurrentlyReading([])
       }
 
       // Load favorite books from cache
@@ -205,29 +207,33 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-700 mb-2">
-            {isOwnProfile ? 'My Books' : `@${profile.username}`}
+            @{profile.username}
           </h1>
-          {isOwnProfile && user && (
-            <p className="text-gray-600">{user.email}</p>
-          )}
         </div>
 
         <div className="space-y-8">
-          {/* Favorite Books Billboard */}
-          <FavoriteBooksEditor
-            favoriteBooks={favoriteBooks}
-            onReorder={isOwnProfile ? handleReorderFavorites : undefined}
-            onRemove={isOwnProfile ? handleRemoveFavorite : undefined}
-            onAddClick={isOwnProfile ? () => setShowAddFavoriteModal(true) : undefined}
-          />
+          {/* Single row layout: Reading Now + Favorites */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-24">
+            {/* Reading Now */}
+            <div className="lg:col-span-1">
+              <CurrentlyReadingSection
+                books={currentlyReading}
+                onBookAdded={loadData}
+              />
+            </div>
 
-          {/* Currently Reading - Only show on own profile for now */}
-          {isOwnProfile && currentlyReading.length > 0 && (
-            <CurrentlyReadingSection
-              books={currentlyReading}
-              onBookAdded={loadData}
-            />
-          )}
+            {/* Favorite Books - 4 books in the remaining space */}
+            <div className="lg:col-span-3">
+              <FavoriteBooksEditor
+                favoriteBooks={favoriteBooks}
+                onReorder={isOwnProfile ? handleReorderFavorites : undefined}
+                onRemove={isOwnProfile ? handleRemoveFavorite : undefined}
+                onAddClick={isOwnProfile ? () => setShowAddFavoriteModal(true) : undefined}
+                onBookAdded={loadData}
+                showActions={!isOwnProfile}
+              />
+            </div>
+          </div>
 
           {/* Book Lists - Only show on own profile for now */}
           {isOwnProfile && (
