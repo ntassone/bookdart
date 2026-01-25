@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Menu } from '@base-ui/react/menu';
 import Navigation from '@/components/Navigation';
 import SearchBar from '@/components/SearchBar';
@@ -12,6 +13,8 @@ import { separateDerivativeWorks } from '@/lib/utils/bookFilters';
 import type { Book } from '@/lib/types/book';
 
 export default function SearchPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState('');
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
@@ -20,18 +23,33 @@ export default function SearchPage() {
   const saveToRecentTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSuccessfulSearchRef = useRef<string>('');
 
+  // Initialize query from URL on mount
+  useEffect(() => {
+    const urlQuery = searchParams.get('q');
+    if (urlQuery) {
+      setQuery(urlQuery);
+    }
+  }, []);
+
+  // Update URL when query changes
   useEffect(() => {
     const delaySearch = setTimeout(() => {
       if (query.trim()) {
+        // Update URL with search query
+        const params = new URLSearchParams();
+        params.set('q', query);
+        router.push(`/search?${params.toString()}`, { scroll: false });
         performSearch(query);
       } else {
+        // Clear URL params when query is empty
+        router.push('/search', { scroll: false });
         setBooks([]);
         setError(null);
       }
     }, 500);
 
     return () => clearTimeout(delaySearch);
-  }, [query]);
+  }, [query, router]);
 
   // Separate books into original works and derivative works
   const { originalWorks, derivativeWorks } = useMemo(() => {
@@ -86,7 +104,7 @@ export default function SearchPage() {
       <div className="flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex flex-col items-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-700 mb-8">
+            <h2 className="text-4xl font-bold text-warm-text mb-8">
               Search for Books
             </h2>
             <SearchBar value={query} onChange={setQuery} />
@@ -102,7 +120,7 @@ export default function SearchPage() {
           {/* Error State */}
           {error && !loading && (
             <div className="text-center py-20">
-              <p className="text-gray-600">{error}</p>
+              <p className="text-warm-text-secondary">{error}</p>
             </div>
           )}
 
@@ -119,13 +137,13 @@ export default function SearchPage() {
           {!loading && !error && books.length > 0 && derivativeWorks.length > 0 && (
             <div className="fixed bottom-6 right-6 z-50">
               <Menu.Root>
-                <Menu.Trigger className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-lg hover:bg-gray-50 transition-colors text-sm text-gray-700">
+                <Menu.Trigger className="flex items-center gap-2 px-4 py-2 bg-warm-bg-secondary border border-warm-border rounded-lg shadow-lg hover:bg-warm-bg transition-colors text-sm text-warm-text">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                   </svg>
                   <span>Filter Results</span>
                   {!showDerivatives && (
-                    <span className="px-2 py-0.5 bg-gray-600 text-white text-xs rounded-full">
+                    <span className="px-2 py-0.5 bg-warm-text-secondary text-white text-xs rounded-full">
                       {derivativeWorks.length}
                     </span>
                   )}
@@ -138,9 +156,14 @@ export default function SearchPage() {
                     sideOffset={8}
                     className="z-50"
                   >
-                    <Menu.Popup className="min-w-[240px] bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
-                      <div className="px-4 py-3 border-b border-gray-200">
-                        <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <Menu.Popup
+                      className="min-w-[240px] border border-warm-border rounded-lg shadow-lg overflow-hidden"
+                      style={{
+                        backgroundColor: 'var(--color-bg-secondary)'
+                      }}
+                    >
+                      <div className="px-4 py-3 border-b border-warm-border">
+                        <p className="text-xs font-semibold text-warm-text-secondary uppercase tracking-wider">
                           Filter Options
                         </p>
                       </div>
@@ -150,19 +173,19 @@ export default function SearchPage() {
                           setShowDerivatives(!showDerivatives)
                         }}
                         closeOnClick={false}
-                        className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors cursor-pointer outline-none data-[highlighted]:bg-gray-50 flex items-center justify-between gap-3"
+                        className="w-full px-4 py-3 text-left text-sm hover:bg-warm-bg transition-colors cursor-pointer outline-none data-[highlighted]:bg-warm-bg flex items-center justify-between gap-3"
                       >
-                        <span className="text-gray-700">Show summaries & guides</span>
+                        <span className="text-warm-text">Show summaries & guides</span>
                         <div className={`relative w-9 h-5 rounded-full transition-colors flex items-center flex-shrink-0 ${
-                          showDerivatives ? 'bg-gray-600' : 'bg-gray-300'
+                          showDerivatives ? 'bg-warm-text-secondary' : 'bg-warm-border'
                         }`}>
-                          <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform transform ${
+                          <div className={`w-4 h-4 bg-warm-bg-secondary rounded-full shadow transition-transform transform ${
                             showDerivatives ? 'translate-x-[1.125rem]' : 'translate-x-0.5'
                           }`} />
                         </div>
                       </Menu.Item>
-                      <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-                        <p className="text-xs text-gray-600">
+                      <div className="px-4 py-3 bg-warm-bg border-t border-warm-border">
+                        <p className="text-xs text-warm-text-secondary">
                           Showing {displayedBooks.length} of {books.length} results
                           {!showDerivatives && derivativeWorks.length > 0 && (
                             <> ({derivativeWorks.length} hidden)</>
@@ -180,7 +203,7 @@ export default function SearchPage() {
           {!loading && !error && !query && books.length === 0 && (
             <div className="text-center py-20">
               <svg
-                className="mx-auto h-16 w-16 text-gray-400 mb-4"
+                className="mx-auto h-16 w-16 text-warm-text-tertiary mb-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -192,7 +215,7 @@ export default function SearchPage() {
                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                 />
               </svg>
-              <p className="text-gray-600">Start typing to search for books</p>
+              <p className="text-warm-text-secondary">Start typing to search for books</p>
             </div>
           )}
         </div>

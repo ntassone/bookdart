@@ -6,6 +6,7 @@ import { ToastProvider } from '@/lib/contexts/ToastContext';
 import { UserPreferencesProvider } from '@/lib/contexts/UserPreferencesContext';
 import { ReadBooksProvider } from '@/lib/contexts/ReadBooksContext';
 import { UsernameProvider } from '@/lib/contexts/UsernameContext';
+import QueryProvider from '@/lib/contexts/QueryProvider';
 import ToastContainer from '@/components/ToastContainer';
 
 const geistSans = localFont({
@@ -34,18 +35,20 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>
-          <UserPreferencesProvider>
-            <ReadBooksProvider>
-              <ToastProvider>
-                <UsernameProvider>
-                  {children}
-                  <ToastContainer />
-                </UsernameProvider>
-              </ToastProvider>
-            </ReadBooksProvider>
-          </UserPreferencesProvider>
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <UserPreferencesProvider>
+              <ReadBooksProvider>
+                <ToastProvider>
+                  <UsernameProvider>
+                    {children}
+                    <ToastContainer />
+                  </UsernameProvider>
+                </ToastProvider>
+              </ReadBooksProvider>
+            </UserPreferencesProvider>
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

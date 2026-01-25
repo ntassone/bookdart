@@ -34,8 +34,13 @@ export default function FavoriteBooksEditor({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-gray-700">Favorites</h2>
-      <div className="grid grid-cols-4 gap-6">
+      <div className="flex items-center gap-2">
+        <svg className="w-5 h-5 text-warm-text-secondary" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+        </svg>
+        <h2 className="text-lg font-bold text-warm-text uppercase">Favorite Books</h2>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
         {slots.map((book, index) =>
           book ? (
             // Filled slot with book
@@ -51,9 +56,9 @@ export default function FavoriteBooksEditor({
                   <Tooltip.Trigger>
                     <button
                       onClick={() => onRemove(book.id)}
-                      className="absolute top-2 right-2 p-1.5 bg-white border border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-50 z-20"
+                      className="absolute top-2 right-2 p-1.5 bg-warm-bg-secondary border border-warm-border opacity-0 group-hover:opacity-100 transition-opacity hover:bg-warm-bg z-20"
                     >
-                      <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-warm-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
@@ -74,11 +79,11 @@ export default function FavoriteBooksEditor({
               {canEdit && onAddClick ? (
                 <button
                   onClick={onAddClick}
-                  className="aspect-[2/3] border border-gray-300 bg-gray-400 opacity-30 hover:opacity-40 transition-opacity w-full"
+                  className="aspect-[2/3] border border-warm-border bg-warm-text-tertiary opacity-30 hover:opacity-40 transition-opacity w-full"
                   aria-label="Add favorite book"
                 />
               ) : (
-                <div className="aspect-[2/3] border border-gray-300 bg-gray-400 opacity-30" />
+                <div className="aspect-[2/3] border border-warm-border bg-warm-text-tertiary opacity-30" />
               )}
             </div>
           )

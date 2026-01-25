@@ -45,9 +45,9 @@ export default function CompactBookCard({ book, onClick, showAddButton = false, 
       <Tooltip.Trigger className="w-full">
         <div
           onClick={handleClick}
-          className="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all group cursor-pointer relative overflow-hidden w-full"
+          className="bg-warm-bg-secondary border border-warm-border hover:border-warm-border hover:shadow-sm transition-all group cursor-pointer relative overflow-hidden w-full"
         >
-          <div className="relative aspect-[2/3] bg-gray-100 overflow-hidden">
+          <div className="relative aspect-[2/3] bg-warm-bg overflow-hidden">
             {/* Faded image layer */}
             <div className={`absolute inset-0 transition-opacity ${isRead && fadeCompletedBooks ? 'opacity-40' : 'opacity-100'}`}>
               {book.coverUrl ? (
@@ -71,88 +71,32 @@ export default function CompactBookCard({ book, onClick, showAddButton = false, 
             <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none" />
 
             {/* Dog-ear bookmark - visible only when marked as read */}
-            {isRead && showAddButton && (
-              <div className="absolute top-0 right-0 z-10">
-                {/* Triangular shadow beneath dog-ear */}
-                <div
-                  className="absolute top-0 right-0 w-12 h-12 pointer-events-none"
-                  style={{
-                    clipPath: 'polygon(100% 0, 100% 100%, 0 0)',
-                    backgroundColor: 'rgba(0, 0, 0, 0.2)'
-                  }}
-                />
+            {isRead && (
+              <div className="absolute top-1 right-0.5 z-10 pointer-events-none">
+                <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                  {/* Black triangle with subtle white border */}
+                  <path
+                    d="M31.6765 0.5C32.7811 0.5 33.6765 1.39543 33.6765 2.5V31.6716C33.6765 33.4534 31.5222 34.3457 30.2623 33.0858L1.09072 3.91421C-0.169206 2.65428 0.723131 0.5 2.50494 0.5H31.6765Z"
+                    fill="black"
+                    stroke="rgba(255, 255, 255, .4)"
+                    strokeWidth=".75"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                  />
+                  {/* White checkmark icon */}
+                  <path
+                    stroke="white"
+                    d="M 18 11 L 21 14 L 27 8"
+                    strokeWidth="1"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                  />
+                </svg>
 
-                <div className="relative w-12 h-12">
-                  {/* Dog-ear fold effect */}
-                  <div
-                    className="absolute top-0 right-0 w-12 h-12 overflow-hidden pointer-events-none"
-                    style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 0)' }}
-                  >
-                    {/* Folded page */}
-                    <div
-                      className="absolute top-0 right-0 w-full h-full bg-gray-600"
-                    />
-
-                    {/* Shadow effect for depth */}
-                    <div
-                      className="absolute top-0 right-0 w-full h-full"
-                      style={{
-                        background: 'linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%)'
-                      }}
-                    />
-                  </div>
-
-                  {/* Checkmark icon */}
-                  <div className="absolute top-1 right-1 pointer-events-none">
-                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                </div>
               </div>
             )}
 
-            {/* Dog-ear bookmark for non-action cards (profile pages, etc.) */}
-            {isRead && !showAddButton && (
-              <div className="absolute top-0 right-0 z-10 pointer-events-none">
-                {/* Triangular shadow beneath dog-ear */}
-                <div
-                  className="absolute top-0 right-0 w-12 h-12"
-                  style={{
-                    clipPath: 'polygon(100% 0, 100% 100%, 0 0)',
-                    backgroundColor: 'rgba(0, 0, 0, 0.2)'
-                  }}
-                />
-
-                <div className="relative w-12 h-12">
-                  {/* Dog-ear fold effect */}
-                  <div
-                    className="absolute top-0 right-0 w-12 h-12 overflow-hidden"
-                    style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 0)' }}
-                  >
-                    {/* Folded page */}
-                    <div
-                      className="absolute top-0 right-0 w-full h-full bg-gray-600"
-                    />
-
-                    {/* Shadow effect for depth */}
-                    <div
-                      className="absolute top-0 right-0 w-full h-full"
-                      style={{
-                        background: 'linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%)'
-                      }}
-                    />
-                  </div>
-
-                  {/* Checkmark icon */}
-                  <div className="absolute top-1 right-1">
-                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Action buttons on hover - overlay on cover at full opacity */}
             {showAddButton && (
@@ -165,9 +109,9 @@ export default function CompactBookCard({ book, onClick, showAddButton = false, 
         <Tooltip.Positioner sideOffset={8}>
           <Tooltip.Popup className="bg-gray-800 text-white px-3 py-2 max-w-[200px] z-50 rounded">
             <p className="font-semibold text-sm mb-1">{book.title}</p>
-            <p className="text-xs text-gray-300">{authors}</p>
+            <p className="text-xs opacity-80">{authors}</p>
             {book.publishYear && (
-              <p className="text-xs text-gray-400 mt-1">{book.publishYear}</p>
+              <p className="text-xs opacity-60 mt-1">{book.publishYear}</p>
             )}
           </Tooltip.Popup>
         </Tooltip.Positioner>

@@ -11,6 +11,7 @@ export interface UserBook {
   date_finished?: string
   is_review_public: boolean
   read_count: number
+  progress?: number // Reading progress as percentage (0-100)
 
   // Book metadata
   title: string
@@ -40,6 +41,7 @@ export interface UpdateBookInput {
   date_finished?: string
   is_review_public?: boolean
   read_count?: number
+  progress?: number
 }
 
 export interface PublicReview {

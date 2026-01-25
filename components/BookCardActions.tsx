@@ -148,42 +148,40 @@ export default function BookCardActions({ book, onAdded, hideWantToRead = false 
       {/* Read actions - top right */}
       {!isRead ? (
         /* Dog-ear for marking as read */
-        <div className="absolute top-0 right-0 z-20">
+        <div className="absolute top-1 right-0.5 z-20">
           <Tooltip.Root>
             <Tooltip.Trigger>
               <button
                 onClick={(e) => handleQuickAction(e, 'read')}
                 disabled={loading}
-                className="relative w-12 h-12 disabled:opacity-50 group/dogear-add"
+                className="relative disabled:opacity-50 group/dogear-add transition-opacity hover:opacity-80"
               >
-                {/* Dog-ear fold effect */}
-                <div
-                  className="absolute top-0 right-0 w-12 h-12 overflow-hidden pointer-events-none"
-                  style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 0)' }}
-                >
-                  {/* Folded page */}
-                  <div className="absolute top-0 right-0 w-full h-full bg-gray-400 transition-colors" />
-
-                  {/* Shadow effect for depth */}
-                  <div
-                    className="absolute top-0 right-0 w-full h-full"
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%)'
-                    }}
+                <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                  {/* Gray triangle with subtle white border */}
+                  <path
+                    d="M31.6765 0.5C32.7811 0.5 33.6765 1.39543 33.6765 2.5V31.6716C33.6765 33.4534 31.5222 34.3457 30.2623 33.0858L1.09072 3.91421C-0.169206 2.65428 0.723131 0.5 2.50494 0.5H31.6765Z"
+                    fill="rgb(156, 163, 175)"
+                    stroke="rgba(255, 255, 255, .4)"
+                    strokeWidth=".75"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    className="transition-all group-hover/dogear-add:fill-gray-700"
                   />
-                </div>
-
-                {/* Checkmark icon */}
-                <div className="absolute top-1 right-1 pointer-events-none opacity-40 group-hover/dogear-add:opacity-100 transition-opacity">
-                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
+                  {/* White checkmark icon */}
+                  <path
+                    stroke="white"
+                    d="M 18 11 L 21 14 L 27 8"
+                    strokeWidth="1"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                  />
+                </svg>
               </button>
             </Tooltip.Trigger>
             <Tooltip.Portal>
               <Tooltip.Positioner sideOffset={4}>
-                <Tooltip.Popup className="bg-gray-800 text-white text-xs px-2 py-1 z-50">
+                <Tooltip.Popup className="bg-gray-800 text-white text-xs px-2 py-1 z-50 rounded">
                   Mark as read
                 </Tooltip.Popup>
               </Tooltip.Positioner>
@@ -221,8 +219,8 @@ export default function BookCardActions({ book, onAdded, hideWantToRead = false 
           <button
             onClick={(e) => handleQuickAction(e, 'want-to-read')}
             disabled={loading}
-            className={`px-3 py-2 bg-white hover:bg-gray-50 border text-sm font-medium transition-all disabled:opacity-50 flex items-center gap-2 ${
-              isWantToRead ? 'border-gray-600 text-gray-700' : 'border-gray-300 text-gray-600'
+            className={`px-3 py-2 bg-warm-bg-secondary hover:bg-warm-bg border text-sm font-medium transition-all disabled:opacity-50 flex items-center gap-2 ${
+              isWantToRead ? 'border-warm-text text-warm-text' : 'border-warm-border text-warm-text-secondary'
             }`}
           >
             {isWantToRead ? (
@@ -247,11 +245,11 @@ export default function BookCardActions({ book, onAdded, hideWantToRead = false 
         <Menu.Root>
           <Menu.Trigger
             onClick={(e) => e.stopPropagation()}
-            className="p-2 bg-white hover:bg-gray-50 border border-gray-300 transition-all disabled:opacity-50"
+            className="p-2 bg-warm-bg-secondary hover:bg-warm-bg border border-warm-border transition-all disabled:opacity-50"
             disabled={loading}
           >
             <svg
-              className="w-4 h-4 text-gray-600"
+              className="w-4 h-4 text-warm-text-secondary"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -272,17 +270,22 @@ export default function BookCardActions({ book, onAdded, hideWantToRead = false 
               sideOffset={4}
               className="z-50"
             >
-              <Menu.Popup className="min-w-[180px] bg-white border border-gray-200 overflow-hidden">
+              <Menu.Popup
+                className="min-w-[180px] border border-warm-border overflow-hidden"
+                style={{
+                  backgroundColor: 'var(--color-bg-secondary)'
+                }}
+              >
                 <Menu.Item
                   onClick={(e) => {
                     e.stopPropagation()
                     handleToggleList('reading')
                   }}
                   disabled={loading}
-                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors cursor-pointer outline-none data-[highlighted]:bg-gray-50 flex items-center gap-2"
+                  className="w-full px-4 py-2 text-left text-sm text-warm-text hover:bg-warm-bg disabled:opacity-50 transition-colors cursor-pointer outline-none data-[highlighted]:bg-warm-bg flex items-center gap-2"
                 >
                   {isReading && (
-                    <svg className="w-3 h-3 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-3 h-3 text-warm-text-secondary" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   )}
@@ -295,7 +298,7 @@ export default function BookCardActions({ book, onAdded, hideWantToRead = false 
                     router.push(url)
                   }}
                   disabled={loading}
-                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors cursor-pointer outline-none data-[highlighted]:bg-gray-50"
+                  className="w-full px-4 py-2 text-left text-sm text-warm-text hover:bg-warm-bg disabled:opacity-50 transition-colors cursor-pointer outline-none data-[highlighted]:bg-warm-bg"
                 >
                   View Details
                 </Menu.Item>

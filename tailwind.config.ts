@@ -16,17 +16,25 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        warm: {
+          border: "var(--color-border)",
+          bg: "var(--color-bg)",
+          'bg-secondary': "var(--color-bg-secondary)",
+          text: "var(--color-text)",
+          'text-secondary': "var(--color-text-secondary)",
+          'text-tertiary': "var(--color-text-tertiary)",
+        },
       },
       borderRadius: {
-        'DEFAULT': '1px',
+        'DEFAULT': '2px',
         'none': '0',
-        'sm': '1px',
-        'md': '1px',
-        'lg': '1px',
-        'xl': '1px',
-        '2xl': '1px',
-        '3xl': '1px',
-        'full': '1px',
+        'sm': '2px',
+        'md': '2px',
+        'lg': '2px',
+        'xl': '2px',
+        '2xl': '2px',
+        '3xl': '2px',
+        'full': '9999px',
       },
       keyframes: {
         'ping-sm': {

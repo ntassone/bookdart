@@ -56,7 +56,7 @@ export default function AddToLibraryButton({ book, onAdded }: AddToLibraryButton
     <Menu.Root>
       <Menu.Trigger
         onClick={(e) => e.stopPropagation()}
-        className="w-full px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-semibold disabled:opacity-50"
+        className="w-full px-3 py-2 bg-warm-text-secondary hover:bg-warm-text text-white rounded-lg transition-colors text-sm font-semibold disabled:opacity-50"
         disabled={loading}
       >
         Add to List +
@@ -69,14 +69,19 @@ export default function AddToLibraryButton({ book, onAdded }: AddToLibraryButton
           sideOffset={4}
           className="z-50"
         >
-          <Menu.Popup className="min-w-[200px] bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+          <Menu.Popup
+            className="min-w-[200px] border border-warm-border rounded-lg shadow-lg overflow-hidden"
+            style={{
+              backgroundColor: 'var(--color-bg-secondary)'
+            }}
+          >
             <Menu.Item
               onClick={(e) => {
                 e.stopPropagation()
                 handleAddToList('want-to-read')
               }}
               disabled={loading}
-              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors cursor-pointer outline-none data-[highlighted]:bg-gray-50"
+              className="w-full px-4 py-2 text-left text-sm text-warm-text hover:bg-warm-bg disabled:opacity-50 transition-colors cursor-pointer outline-none data-[highlighted]:bg-warm-bg"
             >
               Want to Read
             </Menu.Item>
@@ -86,7 +91,7 @@ export default function AddToLibraryButton({ book, onAdded }: AddToLibraryButton
                 handleAddToList('reading')
               }}
               disabled={loading}
-              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors cursor-pointer outline-none data-[highlighted]:bg-gray-50"
+              className="w-full px-4 py-2 text-left text-sm text-warm-text hover:bg-warm-bg disabled:opacity-50 transition-colors cursor-pointer outline-none data-[highlighted]:bg-warm-bg"
             >
               Reading Now
             </Menu.Item>
@@ -96,7 +101,7 @@ export default function AddToLibraryButton({ book, onAdded }: AddToLibraryButton
                 handleAddToList('read')
               }}
               disabled={loading}
-              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors cursor-pointer outline-none data-[highlighted]:bg-gray-50"
+              className="w-full px-4 py-2 text-left text-sm text-warm-text hover:bg-warm-bg disabled:opacity-50 transition-colors cursor-pointer outline-none data-[highlighted]:bg-warm-bg"
             >
               Read
             </Menu.Item>
