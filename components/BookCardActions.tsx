@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
+import { Minus, Plus, Check } from 'lucide-react'
 import { Menu } from '@base-ui/react/menu'
 import { Tooltip } from '@base-ui/react/tooltip'
 import { useAuth } from '@/lib/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/lib/contexts/ToastContext'
 import { useReadBooks } from '@/lib/contexts/ReadBooksContext'
+import { useInverted } from '@/lib/contexts/InvertedContext'
 import { addBookToLibrary, getBookInLibrary, removeBookFromLibrary } from '@/lib/api/userBooks'
 import { generateBookUrl } from '@/lib/utils/bookUrl'
 import type { Book } from '@/lib/types/book'
@@ -16,6 +18,9 @@ interface BookCardActionsProps {
   book: Book
   onAdded?: () => void
   hideWantToRead?: boolean
+  initialStatus?: UserBook[]
+  isMenuOpen?: boolean
+  onMenuOpenChange?: (open: boolean) => void
 }
 
 /**
@@ -26,19 +31,21 @@ interface BookCardActionsProps {
  * - Reading Now: Books actively reading
  * - Read: Books finished
  */
-export default function BookCardActions({ book, onAdded, hideWantToRead = false }: BookCardActionsProps) {
+const BookCardActions = React.memo(function BookCardActions({ book, onAdded, hideWantToRead = false, initialStatus, isMenuOpen = false, onMenuOpenChange }: BookCardActionsProps) {
   const { user } = useAuth()
   const router = useRouter()
   const { addToast } = useToast()
   const { addReadBook, removeReadBook } = useReadBooks()
+  const { inverted } = useInverted()
   const [loading, setLoading] = useState(false)
-  const [userBooks, setUserBooks] = useState<UserBook[]>([])
+  const [userBooks, setUserBooks] = useState<UserBook[]>(initialStatus || [])
 
   useEffect(() => {
-    if (user) {
+    // Only fetch if initialStatus was not provided
+    if (user && initialStatus === undefined) {
       getBookInLibrary(book.id).then(setUserBooks).catch(() => setUserBooks([]))
     }
-  }, [user, book.id])
+  }, [user, book.id, initialStatus])
 
   const handleToggleList = async (status: BookStatus) => {
     if (!user) {
@@ -144,67 +151,49 @@ export default function BookCardActions({ book, onAdded, hideWantToRead = false 
   const isReading = userBooks.some(b => b.status === 'reading')
 
   return (
-    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
-      {/* Read actions - top right */}
-      {!isRead ? (
-        /* Dog-ear for marking as read */
-        <div className="absolute top-1 right-0.5 z-20">
+    <React.Fragment>
+      {/* Read dog-ear - always visible with checkmark, shows minus on hover */}
+      {isRead && (
+        <div className="absolute top-1 right-0.5 z-20 pointer-events-auto">
           <Tooltip.Root>
             <Tooltip.Trigger>
               <button
                 onClick={(e) => handleQuickAction(e, 'read')}
                 disabled={loading}
-                className="relative disabled:opacity-50 group/dogear-add transition-opacity hover:opacity-80"
+                className="relative disabled:opacity-50 group/dogear-remove"
               >
                 <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-                  {/* Gray triangle with subtle white border */}
+                  {/* Background blocker to prevent bleed-through */}
                   <path
                     d="M31.6765 0.5C32.7811 0.5 33.6765 1.39543 33.6765 2.5V31.6716C33.6765 33.4534 31.5222 34.3457 30.2623 33.0858L1.09072 3.91421C-0.169206 2.65428 0.723131 0.5 2.50494 0.5H31.6765Z"
-                    fill="rgb(156, 163, 175)"
-                    stroke="rgba(255, 255, 255, .4)"
+                    fill="#000000"
+                  />
+                  {/* Dark neutral triangle with white border, red on hover */}
+                  <path
+                    d="M31.6765 0.5C32.7811 0.5 33.6765 1.39543 33.6765 2.5V31.6716C33.6765 33.4534 31.5222 34.3457 30.2623 33.0858L1.09072 3.91421C-0.169206 2.65428 0.723131 0.5 2.50494 0.5H31.6765Z"
+                    className="transition-all fill-neutral-800 group-hover/dogear-remove:fill-red-600"
                     strokeWidth=".75"
                     strokeLinejoin="round"
                     strokeLinecap="round"
-                    className="transition-all group-hover/dogear-add:fill-gray-700"
-                  />
-                  {/* White checkmark icon */}
-                  <path
-                    stroke="white"
-                    d="M 18 11 L 21 14 L 27 8"
-                    strokeWidth="1"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    fill="none"
                   />
                 </svg>
+                {/* Checkmark - always visible, hidden on hover */}
+                <Check
+                  className="absolute w-4 h-4 text-white transition-opacity top-1 right-1.5 group-hover/dogear-remove:opacity-0"
+                  strokeWidth={1}
+                />
+                {/* Minus icon - shown on button hover only */}
+                <Minus
+                  className="absolute w-4 h-4 text-white transition-opacity opacity-0 top-1 right-1.5 group-hover/dogear-remove:opacity-100"
+                  strokeWidth={1}
+                />
               </button>
             </Tooltip.Trigger>
             <Tooltip.Portal>
               <Tooltip.Positioner sideOffset={4}>
-                <Tooltip.Popup className="bg-gray-800 text-white text-xs px-2 py-1 z-50 rounded">
-                  Mark as read
-                </Tooltip.Popup>
-              </Tooltip.Positioner>
-            </Tooltip.Portal>
-          </Tooltip.Root>
-        </div>
-      ) : (
-        /* Clickable overlay on dog-ear for unmarking */
-        <div className="absolute top-0 right-0 z-20">
-          <Tooltip.Root>
-            <Tooltip.Trigger>
-              <button
-                onClick={(e) => handleQuickAction(e, 'read')}
-                disabled={loading}
-                className="relative w-12 h-12 disabled:opacity-50 hover:opacity-80 transition-opacity"
-              >
-                {/* Invisible clickable area */}
-                <span className="sr-only">Mark as unread</span>
-              </button>
-            </Tooltip.Trigger>
-            <Tooltip.Portal>
-              <Tooltip.Positioner sideOffset={4}>
-                <Tooltip.Popup className="bg-gray-800 text-white text-xs px-2 py-1 z-50">
+                <Tooltip.Popup className={`z-50 px-2 py-1 text-xs transition-all duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 ${
+                  inverted ? 'bg-warm-bg-secondary text-warm-text border border-warm-border' : 'bg-warm-text text-white'
+                }`}>
                   Mark as unread
                 </Tooltip.Popup>
               </Tooltip.Positioner>
@@ -213,7 +202,51 @@ export default function BookCardActions({ book, onAdded, hideWantToRead = false 
         </div>
       )}
 
-      <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-2">
+      {/* Hover-activated actions - stays visible when menu is open */}
+      <div className={`absolute inset-0 transition-opacity pointer-events-none ${
+        isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto'
+      }`}>
+        {/* Unread dog-ear - shows on card hover */}
+        {!isRead && (
+          <div className="absolute top-1 right-0.5 z-20">
+            <Tooltip.Root>
+              <Tooltip.Trigger>
+                <button
+                  onClick={(e) => handleQuickAction(e, 'read')}
+                  disabled={loading}
+                  className="relative transition-opacity disabled:opacity-50 group/dogear-add"
+                >
+                  <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                    {/* Dark neutral triangle with subtle white border */}
+                    <path
+                      d="M31.6765 0.5C32.7811 0.5 33.6765 1.39543 33.6765 2.5V31.6716C33.6765 33.4534 31.5222 34.3457 30.2623 33.0858L1.09072 3.91421C-0.169206 2.65428 0.723131 0.5 2.50494 0.5H31.6765Z"
+                      className="transition-all fill-neutral-800 group-hover/dogear-add:fill-neutral-900"
+                      strokeWidth=".75"
+                      strokeLinejoin="round"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  {/* White checkmark icon */}
+                  <Plus
+                    className="absolute w-4 h-4 text-white top-1 right-1.5"
+                    strokeWidth={1}
+                  />
+                </button>
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Positioner sideOffset={4}>
+                  <Tooltip.Popup className={`z-50 px-2 py-1 text-xs rounded transition-all duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 ${
+                    inverted ? 'bg-warm-bg-secondary text-warm-text border border-warm-border' : 'bg-warm-text text-white'
+                  }`}>
+                    Mark as read
+                  </Tooltip.Popup>
+                </Tooltip.Positioner>
+              </Tooltip.Portal>
+            </Tooltip.Root>
+          </div>
+        )}
+
+      <div className="absolute flex items-center justify-between gap-2 bottom-2 left-2 right-2">
         {/* Want to Read button - bottom left */}
         {!hideWantToRead && (
           <button
@@ -225,16 +258,12 @@ export default function BookCardActions({ book, onAdded, hideWantToRead = false 
           >
             {isWantToRead ? (
               <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                </svg>
+                <Minus className="w-4 h-4" />
                 Remove
               </>
             ) : (
               <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
+                <Plus className="w-4 h-4" />
                 Want to read
               </>
             )}
@@ -242,10 +271,10 @@ export default function BookCardActions({ book, onAdded, hideWantToRead = false 
         )}
 
         {/* More Options Menu - bottom right */}
-        <Menu.Root>
+        <Menu.Root onOpenChange={onMenuOpenChange}>
           <Menu.Trigger
             onClick={(e) => e.stopPropagation()}
-            className="p-2 bg-warm-bg-secondary hover:bg-warm-bg border border-warm-border transition-all disabled:opacity-50"
+            className="p-2 transition-all border bg-warm-bg-secondary hover:bg-warm-bg border-warm-border disabled:opacity-50"
             disabled={loading}
           >
             <svg
@@ -270,24 +299,23 @@ export default function BookCardActions({ book, onAdded, hideWantToRead = false 
               sideOffset={4}
               className="z-50"
             >
-              <Menu.Popup
-                className="min-w-[180px] border border-warm-border overflow-hidden"
-                style={{
-                  backgroundColor: 'var(--color-bg-secondary)'
-                }}
-              >
+              <Menu.Popup className={`min-w-[180px] overflow-hidden transition-all duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 ${
+                inverted ? 'bg-warm-bg-secondary border border-warm-border' : 'bg-warm-text border border-white border-opacity-20'
+              }`}>
                 <Menu.Item
                   onClick={(e) => {
                     e.stopPropagation()
                     handleToggleList('reading')
                   }}
                   disabled={loading}
-                  className="w-full px-4 py-2 text-left text-sm text-warm-text hover:bg-warm-bg disabled:opacity-50 transition-colors cursor-pointer outline-none data-[highlighted]:bg-warm-bg flex items-center gap-2"
+                  className={`w-full px-4 py-2 text-left text-sm disabled:opacity-50 transition-colors cursor-pointer outline-none flex items-center gap-2 ${
+                    inverted
+                      ? 'text-warm-text hover:bg-warm-bg data-[highlighted]:bg-warm-bg'
+                      : 'text-white hover:bg-white hover:bg-opacity-10 data-[highlighted]:bg-white data-[highlighted]:bg-opacity-10'
+                  }`}
                 >
                   {isReading && (
-                    <svg className="w-3 h-3 text-warm-text-secondary" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
+                    <Check className={`w-3 h-3 ${inverted ? 'text-warm-text-secondary' : 'text-white text-opacity-60'}`} />
                   )}
                   <span className={isReading ? 'font-semibold' : ''}>Reading Now</span>
                 </Menu.Item>
@@ -298,7 +326,11 @@ export default function BookCardActions({ book, onAdded, hideWantToRead = false 
                     router.push(url)
                   }}
                   disabled={loading}
-                  className="w-full px-4 py-2 text-left text-sm text-warm-text hover:bg-warm-bg disabled:opacity-50 transition-colors cursor-pointer outline-none data-[highlighted]:bg-warm-bg"
+                  className={`w-full px-4 py-2 text-left text-sm disabled:opacity-50 transition-colors cursor-pointer outline-none ${
+                    inverted
+                      ? 'text-warm-text hover:bg-warm-bg data-[highlighted]:bg-warm-bg'
+                      : 'text-white hover:bg-white hover:bg-opacity-10 data-[highlighted]:bg-white data-[highlighted]:bg-opacity-10'
+                  }`}
                 >
                   View Details
                 </Menu.Item>
@@ -307,6 +339,9 @@ export default function BookCardActions({ book, onAdded, hideWantToRead = false 
           </Menu.Portal>
         </Menu.Root>
         </div>
-    </div>
+      </div>
+    </React.Fragment>
   )
-}
+});
+
+export default BookCardActions;
