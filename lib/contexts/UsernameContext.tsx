@@ -6,6 +6,7 @@ import { getUserProfile } from '@/lib/api/userProfile'
 import UsernameModal from '@/components/UsernameModal'
 
 interface UsernameContextType {
+  username: string | null
   needsUsername: boolean
   isChecking: boolean
   refreshUsername: () => Promise<void>
@@ -15,12 +16,14 @@ const UsernameContext = createContext<UsernameContextType | undefined>(undefined
 
 export function UsernameProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth()
+  const [username, setUsername] = useState<string | null>(null)
   const [needsUsername, setNeedsUsername] = useState(false)
   const [isChecking, setIsChecking] = useState(true)
   const [showModal, setShowModal] = useState(false)
 
   const checkUsername = async () => {
     if (!user) {
+      setUsername(null)
       setIsChecking(false)
       setNeedsUsername(false)
       setShowModal(false)
@@ -29,11 +32,13 @@ export function UsernameProvider({ children }: { children: ReactNode }) {
 
     try {
       const profile = await getUserProfile()
+      setUsername(profile?.username || null)
       const needs = profile !== null && !profile.username
       setNeedsUsername(needs)
       setShowModal(needs)
     } catch (error) {
       console.error('Error checking username:', error)
+      setUsername(null)
       setNeedsUsername(false)
       setShowModal(false)
     } finally {
@@ -59,7 +64,7 @@ export function UsernameProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <UsernameContext.Provider value={{ needsUsername, isChecking, refreshUsername }}>
+    <UsernameContext.Provider value={{ username, needsUsername, isChecking, refreshUsername }}>
       {children}
       <UsernameModal open={showModal} onComplete={handleComplete} />
     </UsernameContext.Provider>

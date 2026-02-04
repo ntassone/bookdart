@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getUserBooks } from '@/lib/api/userBooks'
+import { getUserBooks, getUserBooksByUserId } from '@/lib/api/userBooks'
 import { getUserProfile, getUserProfileByUsername, addToFavorites, removeFromFavorites, reorderFavorites } from '@/lib/api/userProfile'
 import { getCachedBooks } from '@/lib/api/bookCache'
 import type { UserBook, BookStatus } from '@/lib/types/userBook'
@@ -18,6 +18,7 @@ export const profileKeys = {
 export const booksKeys = {
   all: ['books'] as const,
   byStatus: (status?: BookStatus) => [...booksKeys.all, 'status', status ?? 'all'] as const,
+  byUserId: (userId: string, status?: BookStatus) => [...booksKeys.all, 'user', userId, status ?? 'all'] as const,
   cached: (ids: string[]) => [...booksKeys.all, 'cached', ids.sort().join(',')] as const,
 }
 
@@ -37,11 +38,20 @@ export function useCurrentUserProfile() {
   })
 }
 
-// Hook to fetch user's books
+// Hook to fetch current user's books
 export function useUserBooks(filter?: BookStatus) {
   return useQuery({
     queryKey: booksKeys.byStatus(filter),
     queryFn: () => getUserBooks(filter === 'all' ? undefined : filter),
+  })
+}
+
+// Hook to fetch any user's books by their user_id
+export function useUserBooksByUserId(userId: string | undefined, filter?: BookStatus) {
+  return useQuery({
+    queryKey: booksKeys.byUserId(userId ?? '', filter),
+    queryFn: () => getUserBooksByUserId(userId!, filter === 'all' ? undefined : filter),
+    enabled: !!userId,
   })
 }
 

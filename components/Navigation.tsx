@@ -1,30 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@base-ui/react/button'
 import { useAuth } from '@/lib/contexts/AuthContext'
-import { getUserProfile } from '@/lib/api/userProfile'
+import { useUsername } from '@/lib/contexts/UsernameContext'
 import UserAvatar from '@/components/UserAvatar'
 
 export default function Navigation() {
-  const { user, loading } = useAuth()
-  const [username, setUsername] = useState<string | null>(null)
-
-  useEffect(() => {
-    const loadUsername = async () => {
-      if (user) {
-        const profile = await getUserProfile()
-        setUsername(profile?.username || null)
-      } else {
-        setUsername(null)
-      }
-    }
-
-    if (!loading) {
-      loadUsername()
-    }
-  }, [user, loading])
+  const { user, loading: authLoading } = useAuth()
+  const { username, isChecking: usernameLoading } = useUsername()
+  const loading = authLoading || usernameLoading
 
   return (
     <nav className="border-b border-warm-bg">

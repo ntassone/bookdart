@@ -1,3 +1,9 @@
+/**
+ * @deprecated This context is not currently used in the application.
+ * The app uses React Query hooks instead (see lib/hooks/useProfileData.ts).
+ * This file is kept for reference but should not be imported in new code.
+ */
+
 'use client'
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'

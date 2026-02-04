@@ -18,7 +18,7 @@ export async function getAverageColor(
       const ctx = canvas.getContext('2d');
 
       if (!ctx) {
-        resolve('rgb(75, 85, 99)'); // fallback to gray-600
+        resolve('rgb(82, 82, 82)'); // fallback to neutral-600
         return;
       }
 
@@ -77,11 +77,63 @@ export async function getAverageColor(
     };
 
     img.onerror = () => {
-      resolve('rgb(75, 85, 99)'); // fallback to gray-600
+      resolve('rgb(82, 82, 82)'); // fallback to neutral-600
     };
 
     img.src = imageUrl;
   });
+}
+
+/**
+ * Boost color saturation to make colors more vibrant
+ */
+function boostSaturation(r: number, g: number, b: number, factor: number = 1.3): { r: number, g: number, b: number } {
+  // Convert RGB to HSL
+  const rNorm = r / 255;
+  const gNorm = g / 255;
+  const bNorm = b / 255;
+
+  const max = Math.max(rNorm, gNorm, bNorm);
+  const min = Math.min(rNorm, gNorm, bNorm);
+  const l = (max + min) / 2;
+
+  if (max === min) {
+    return { r, g, b }; // Achromatic, no saturation boost needed
+  }
+
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+  let h = 0;
+  if (max === rNorm) {
+    h = ((gNorm - bNorm) / d + (gNorm < bNorm ? 6 : 0)) / 6;
+  } else if (max === gNorm) {
+    h = ((bNorm - rNorm) / d + 2) / 6;
+  } else {
+    h = ((rNorm - gNorm) / d + 4) / 6;
+  }
+
+  // Boost saturation
+  const sBoosted = Math.min(1, s * factor);
+
+  // Convert back to RGB
+  function hue2rgb(p: number, q: number, t: number) {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  }
+
+  const q = l < 0.5 ? l * (1 + sBoosted) : l + sBoosted - l * sBoosted;
+  const p = 2 * l - q;
+
+  const rOut = Math.round(hue2rgb(p, q, h + 1 / 3) * 255);
+  const gOut = Math.round(hue2rgb(p, q, h) * 255);
+  const bOut = Math.round(hue2rgb(p, q, h - 1 / 3) * 255);
+
+  return { r: rOut, g: gOut, b: bOut };
 }
 
 /**
@@ -102,7 +154,7 @@ export async function getComplementaryGradient(
       const ctx = canvas.getContext('2d');
 
       if (!ctx) {
-        resolve('linear-gradient(135deg, rgb(55, 65, 81), rgb(75, 85, 99))');
+        resolve('rgb(82, 82, 82)'); // fallback to neutral-600
         return;
       }
 
@@ -151,6 +203,17 @@ export async function getComplementaryGradient(
       let g2 = Math.floor(bottomRightColors.g / bottomRightColors.count);
       let b2 = Math.floor(bottomRightColors.b / bottomRightColors.count);
 
+      // Boost saturation for more vibrant colors
+      const boosted1 = boostSaturation(r1, g1, b1, 1.3);
+      r1 = boosted1.r;
+      g1 = boosted1.g;
+      b1 = boosted1.b;
+
+      const boosted2 = boostSaturation(r2, g2, b2, 1.3);
+      r2 = boosted2.r;
+      g2 = boosted2.g;
+      b2 = boosted2.b;
+
       // Apply darkening
       if (darken > 0) {
         r1 = Math.floor(r1 * (1 - darken));
@@ -166,7 +229,7 @@ export async function getComplementaryGradient(
     };
 
     img.onerror = () => {
-      resolve('linear-gradient(135deg, rgb(55, 65, 81), rgb(75, 85, 99))');
+      resolve('rgb(82, 82, 82)'); // fallback to neutral-600
     };
 
     img.src = imageUrl;

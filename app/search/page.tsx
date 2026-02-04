@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Menu } from '@base-ui/react/menu';
 import Navigation from '@/components/Navigation';
 import SearchBar from '@/components/SearchBar';
-import BookCard from '@/components/BookCard';
-import LoadingIndicator from '@/components/LoadingIndicator';
+import BookSearchResults from '@/components/BookSearchResults';
 import { searchBooks } from '@/lib/api/openLibrary';
 import { addRecentSearch } from '@/lib/utils/recentSearches';
 import { separateDerivativeWorks } from '@/lib/utils/bookFilters';
@@ -31,37 +30,8 @@ export default function SearchPage() {
     }
   }, []);
 
-  // Update URL when query changes
-  useEffect(() => {
-    const delaySearch = setTimeout(() => {
-      if (query.trim()) {
-        // Update URL with search query
-        const params = new URLSearchParams();
-        params.set('q', query);
-        router.push(`/search?${params.toString()}`, { scroll: false });
-        performSearch(query);
-      } else {
-        // Clear URL params when query is empty
-        router.push('/search', { scroll: false });
-        setBooks([]);
-        setError(null);
-      }
-    }, 500);
-
-    return () => clearTimeout(delaySearch);
-  }, [query, router]);
-
-  // Separate books into original works and derivative works
-  const { originalWorks, derivativeWorks } = useMemo(() => {
-    return separateDerivativeWorks(books);
-  }, [books]);
-
-  // Show original works by default, add derivatives if toggle is on
-  const displayedBooks = useMemo(() => {
-    return showDerivatives ? books : originalWorks;
-  }, [books, originalWorks, showDerivatives]);
-
-  const performSearch = async (searchQuery: string) => {
+  // Search function
+  const performSearch = useCallback(async (searchQuery: string) => {
     setLoading(true);
     setError(null);
 
@@ -94,7 +64,37 @@ export default function SearchPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Update URL when query changes
+  useEffect(() => {
+    const delaySearch = setTimeout(() => {
+      if (query.trim()) {
+        // Update URL with search query
+        const params = new URLSearchParams();
+        params.set('q', query);
+        router.push(`/search?${params.toString()}`, { scroll: false });
+        performSearch(query);
+      } else {
+        // Clear URL params when query is empty
+        router.push('/search', { scroll: false });
+        setBooks([]);
+        setError(null);
+      }
+    }, 500);
+
+    return () => clearTimeout(delaySearch);
+  }, [query, router, performSearch]);
+
+  // Separate books into original works and derivative works
+  const { originalWorks, derivativeWorks } = useMemo(() => {
+    return separateDerivativeWorks(books);
+  }, [books]);
+
+  // Show original works by default, add derivatives if toggle is on
+  const displayedBooks = useMemo(() => {
+    return showDerivatives ? books : originalWorks;
+  }, [books, originalWorks, showDerivatives]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -110,28 +110,14 @@ export default function SearchPage() {
             <SearchBar value={query} onChange={setQuery} />
           </div>
 
-          {/* Loading State */}
-          {loading && (
-            <div className="flex justify-center items-center py-20">
-              <LoadingIndicator size="lg" />
-            </div>
-          )}
-
-          {/* Error State */}
-          {error && !loading && (
-            <div className="text-center py-20">
-              <p className="text-warm-text-secondary">{error}</p>
-            </div>
-          )}
-
-          {/* Results Grid */}
-          {!loading && !error && displayedBooks.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-              {displayedBooks.map((book) => (
-                <BookCard key={book.id} book={book} showAddButton={true} showPublishYear={false} />
-              ))}
-            </div>
-          )}
+          {/* Search Results */}
+          <BookSearchResults
+            books={displayedBooks}
+            loading={loading}
+            error={error}
+            query={query}
+            theme="light"
+          />
 
           {/* Filter Menu - Bottom Right */}
           {!loading && !error && books.length > 0 && derivativeWorks.length > 0 && (
@@ -196,26 +182,6 @@ export default function SearchPage() {
                   </Menu.Positioner>
                 </Menu.Portal>
               </Menu.Root>
-            </div>
-          )}
-
-          {/* Initial Empty State */}
-          {!loading && !error && !query && books.length === 0 && (
-            <div className="text-center py-20">
-              <svg
-                className="mx-auto h-16 w-16 text-warm-text-tertiary mb-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              <p className="text-warm-text-secondary">Start typing to search for books</p>
             </div>
           )}
         </div>

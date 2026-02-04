@@ -19,6 +19,25 @@ export async function getUserBooks(status?: BookStatus): Promise<UserBook[]> {
   return data || []
 }
 
+export async function getUserBooksByUserId(userId: string, status?: BookStatus): Promise<UserBook[]> {
+  const supabase = createClient()
+
+  let query = supabase
+    .from('user_books')
+    .select('*')
+    .eq('user_id', userId)
+    .order('date_added', { ascending: false })
+
+  if (status) {
+    query = query.eq('status', status)
+  }
+
+  const { data, error } = await query
+
+  if (error) throw error
+  return data || []
+}
+
 export async function addBookToLibrary(input: AddBookInput): Promise<UserBook> {
   const supabase = createClient()
 
@@ -88,6 +107,37 @@ export async function getBookInLibrary(bookId: string): Promise<UserBook[]> {
 
   if (error) throw error
   return data || []
+}
+
+/**
+ * Batch fetch book statuses for multiple books in a single query
+ * Returns a Record mapping book_id to UserBook arrays
+ * This eliminates N+1 query problems when rendering book grids
+ */
+export async function getBooksInLibrary(bookIds: string[]): Promise<Record<string, UserBook[]>> {
+  if (bookIds.length === 0) return {}
+
+  const supabase = createClient()
+  const { data: session } = await supabase.auth.getSession()
+
+  if (!session?.session?.user?.id) return {}
+
+  const { data, error } = await supabase
+    .from('user_books')
+    .select('*')
+    .eq('user_id', session.session.user.id)
+    .in('book_id', bookIds)
+
+  if (error) throw error
+
+  // Group results by book_id
+  return (data || []).reduce((acc, book) => {
+    if (!acc[book.book_id]) {
+      acc[book.book_id] = []
+    }
+    acc[book.book_id].push(book)
+    return acc
+  }, {} as Record<string, UserBook[]>)
 }
 
 export async function getPublicReviewsForBook(bookId: string): Promise<PublicReview[]> {

@@ -12,6 +12,10 @@ const config: Config = {
     'animate-ping-lg',
   ],
   theme: {
+    data: {
+      open: 'state="open"',
+      closed: 'state="closed"',
+    },
     extend: {
       colors: {
         background: "var(--background)",
@@ -57,6 +61,6 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [require("tailwindcss-animate")],
 };
 export default config;

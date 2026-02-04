@@ -16,15 +16,15 @@ export default function LoadingIndicator({ size = 'md', className = '' }: Loadin
 
   return (
     <div
-      className={`relative border border-gray-200 ${className}`}
+      className={`relative border border-neutral-200 ${className}`}
       style={{
         width: `${config.trackWidth}px`,
         height: `${config.trackHeight}px`
       }}
     >
-      <div className="absolute inset-0 bg-gray-50" />
+      <div className="absolute inset-0 bg-neutral-50" />
       <div
-        className={`absolute bg-gray-600 ${config.animationClass}`}
+        className={`absolute bg-neutral-600 ${config.animationClass}`}
         style={{
           width: `${config.dotSize}px`,
           height: `${config.dotSize}px`,

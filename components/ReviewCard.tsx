@@ -21,11 +21,11 @@ export default function ReviewCard({ review }: ReviewCardProps) {
     : null
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6">
+    <div className="bg-white border border-neutral-200 rounded-lg p-6">
       {/* Header with rating and date */}
       <div className="flex items-start justify-between mb-3">
         <StarRating rating={review.rating} size="md" />
-        <div className="text-sm text-gray-500 text-right">
+        <div className="text-sm text-neutral-500 text-right">
           {formattedDate && <div>{formattedDate}</div>}
           {review.read_count > 1 && (
             <div className="mt-1">
@@ -39,14 +39,14 @@ export default function ReviewCard({ review }: ReviewCardProps) {
 
       {/* Review text */}
       {review.notes && (
-        <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+        <p className="text-neutral-700 text-sm leading-relaxed whitespace-pre-wrap">
           {review.notes}
         </p>
       )}
 
       {/* Footer - placeholder for future username display */}
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <p className="text-xs text-gray-500">
+      <div className="mt-4 pt-4 border-t border-neutral-100">
+        <p className="text-xs text-neutral-500">
           Bookdart Reader
         </p>
       </div>

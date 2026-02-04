@@ -1,13 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { AuthProvider } from '@/lib/contexts/AuthContext';
-import { ToastProvider } from '@/lib/contexts/ToastContext';
-import { UserPreferencesProvider } from '@/lib/contexts/UserPreferencesContext';
-import { ReadBooksProvider } from '@/lib/contexts/ReadBooksContext';
-import { UsernameProvider } from '@/lib/contexts/UsernameContext';
-import QueryProvider from '@/lib/contexts/QueryProvider';
+import { AppProviders } from '@/lib/contexts/AppProviders';
 import ToastContainer from '@/components/ToastContainer';
+import DevAccountSwitcher from '@/components/DevAccountSwitcher';
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -35,20 +31,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <QueryProvider>
-          <AuthProvider>
-            <UserPreferencesProvider>
-              <ReadBooksProvider>
-                <ToastProvider>
-                  <UsernameProvider>
-                    {children}
-                    <ToastContainer />
-                  </UsernameProvider>
-                </ToastProvider>
-              </ReadBooksProvider>
-            </UserPreferencesProvider>
-          </AuthProvider>
-        </QueryProvider>
+        <AppProviders>
+          {children}
+          <ToastContainer />
+          <DevAccountSwitcher />
+        </AppProviders>
       </body>
     </html>
   );

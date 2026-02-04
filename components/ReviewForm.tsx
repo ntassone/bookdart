@@ -56,7 +56,7 @@ export default function ReviewForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Rating */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-neutral-700 mb-2">
           Rating {!rating && <span className="text-red-500">*</span>}
         </label>
         <StarRating
@@ -69,7 +69,7 @@ export default function ReviewForm({
 
       {/* Date Finished */}
       <div>
-        <label htmlFor="dateFinished" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="dateFinished" className="block text-sm font-medium text-neutral-700 mb-2">
           Date Finished (Optional)
         </label>
         <input
@@ -77,13 +77,13 @@ export default function ReviewForm({
           id="dateFinished"
           value={dateFinished}
           onChange={(e) => setDateFinished(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+          className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent"
         />
       </div>
 
       {/* Review Notes */}
       <div>
-        <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="notes" className="block text-sm font-medium text-neutral-700 mb-2">
           Review (Optional)
         </label>
         <textarea
@@ -92,7 +92,7 @@ export default function ReviewForm({
           onChange={(e) => setNotes(e.target.value)}
           rows={6}
           placeholder="Share your thoughts about this book..."
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent resize-none"
+          className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent resize-none"
         />
       </div>
 
@@ -103,13 +103,13 @@ export default function ReviewForm({
           id="isPublic"
           checked={isPublic}
           onChange={(e) => setIsPublic(e.target.checked)}
-          className="mt-1 h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+          className="mt-1 h-4 w-4 text-neutral-600 focus:ring-neutral-500 border-neutral-300 rounded"
         />
         <div>
-          <label htmlFor="isPublic" className="text-sm font-medium text-gray-700 cursor-pointer">
+          <label htmlFor="isPublic" className="text-sm font-medium text-neutral-700 cursor-pointer">
             Share as public review
           </label>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-neutral-500 mt-1">
             Your rating and review will be visible to all Bookdart users
           </p>
         </div>
@@ -120,7 +120,7 @@ export default function ReviewForm({
         <button
           type="submit"
           disabled={saving || !rating}
-          className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+          className="flex-1 px-4 py-2 bg-neutral-600 text-white rounded-lg hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
         >
           {saving ? 'Saving...' : 'Save Review'}
         </button>
@@ -128,7 +128,7 @@ export default function ReviewForm({
           type="button"
           onClick={onCancel}
           disabled={saving}
-          className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+          className="px-4 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 disabled:opacity-50 transition-colors"
         >
           Cancel
         </button>

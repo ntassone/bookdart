@@ -69,18 +69,18 @@ export default function ResetPasswordPage() {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center">
-          <div className="bg-white border border-gray-200 rounded-lg p-8">
+          <div className="bg-white border border-neutral-200 rounded-lg p-8">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-700 mb-2">Invalid Reset Link</h2>
-            <p className="text-gray-600 mb-6">
+            <h2 className="text-2xl font-bold text-neutral-700 mb-2">Invalid Reset Link</h2>
+            <p className="text-neutral-600 mb-6">
               This password reset link is invalid or has expired. Please request a new one.
             </p>
             <Link href="/auth/forgot-password">
-              <Button className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors">
+              <Button className="bg-neutral-600 hover:bg-neutral-700 text-white px-6 py-2 rounded-lg transition-colors">
                 Request New Link
               </Button>
             </Link>
@@ -94,14 +94,14 @@ export default function ResetPasswordPage() {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center">
-          <div className="bg-white border border-gray-200 rounded-lg p-8">
+          <div className="bg-white border border-neutral-200 rounded-lg p-8">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-700 mb-2">Password Reset Successful</h2>
-            <p className="text-gray-600 mb-6">
+            <h2 className="text-2xl font-bold text-neutral-700 mb-2">Password Reset Successful</h2>
+            <p className="text-neutral-600 mb-6">
               Your password has been reset successfully. Redirecting to sign in...
             </p>
           </div>
@@ -115,17 +115,17 @@ export default function ResetPasswordPage() {
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <Link href="/">
-            <h1 className="text-4xl font-bold text-gray-700 mb-2 cursor-pointer hover:text-gray-600">
+            <h1 className="text-4xl font-bold text-neutral-700 mb-2 cursor-pointer hover:text-neutral-600">
               Bookdart
             </h1>
           </Link>
-          <p className="text-gray-600">Create a new password</p>
+          <p className="text-neutral-600">Create a new password</p>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-8">
+        <div className="bg-white border border-neutral-200 rounded-lg p-8">
           <form onSubmit={handleResetPassword} className="space-y-6">
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-neutral-700 mb-2">
                 New Password
               </label>
               <Input
@@ -135,12 +135,12 @@ export default function ResetPasswordPage() {
                 onValueChange={setPassword}
                 placeholder="••••••••"
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700"
+                className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-neutral-700"
               />
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-neutral-700 mb-2">
                 Confirm New Password
               </label>
               <Input
@@ -150,7 +150,7 @@ export default function ResetPasswordPage() {
                 onValueChange={setConfirmPassword}
                 placeholder="••••••••"
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700"
+                className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-neutral-700"
               />
             </div>
 
@@ -165,8 +165,8 @@ export default function ResetPasswordPage() {
               disabled={loading}
               className={`w-full px-4 py-3 rounded-lg font-semibold transition-colors ${
                 loading
-                  ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                  : 'bg-gray-600 hover:bg-gray-700 text-white'
+                  ? 'bg-neutral-400 text-neutral-200 cursor-not-allowed'
+                  : 'bg-neutral-600 hover:bg-neutral-700 text-white'
               }`}
             >
               {loading ? 'Resetting...' : 'Reset Password'}

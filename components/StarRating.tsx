@@ -51,7 +51,7 @@ export default function StarRating({
           >
             {/* Background star (empty) */}
             <svg
-              className={`${sizeClasses[size]} text-gray-300`}
+              className={`${sizeClasses[size]} text-neutral-300`}
               fill="currentColor"
               viewBox="0 0 24 24"
             >

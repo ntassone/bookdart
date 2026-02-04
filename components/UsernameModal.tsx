@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Check, X } from 'lucide-react'
 import { Dialog } from '@base-ui/react/dialog'
 import { checkUsernameAvailability, setUsername } from '@/lib/api/userProfile'
 import LoadingIndicator from '@/components/LoadingIndicator'
@@ -80,17 +81,17 @@ export default function UsernameModal({ open, onComplete }: UsernameModalProps) 
     <Dialog.Root open={open}>
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 bg-black/50 z-50" />
-        <Dialog.Popup className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl p-6 w-full max-w-md z-50">
-          <Dialog.Title className="text-2xl font-bold text-gray-700 mb-2">
+        <Dialog.Popup className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-warm-text border border-white border-opacity-20 rounded-lg shadow-xl p-6 w-full max-w-md z-50">
+          <Dialog.Title className="text-2xl font-bold text-white mb-2">
             Choose Your Username
           </Dialog.Title>
-          <Dialog.Description className="text-sm text-gray-600 mb-6">
+          <Dialog.Description className="text-sm text-white text-opacity-60 mb-6">
             Pick a unique username for your Bookdart profile. You can use letters, numbers, underscores, and hyphens.
           </Dialog.Description>
 
           <form onSubmit={handleSubmit}>
             <div className="mb-6">
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="username" className="block text-sm font-medium text-white mb-2">
                 Username
               </label>
               <div className="relative">
@@ -100,7 +101,7 @@ export default function UsernameModal({ open, onComplete }: UsernameModalProps) 
                   value={username}
                   onChange={(e) => setUsernameInput(e.target.value.toLowerCase())}
                   placeholder="johndoe"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-white border-opacity-30 rounded-lg bg-transparent text-white placeholder-white placeholder-opacity-40 focus:border-opacity-60 outline-none"
                   autoFocus
                   minLength={3}
                   maxLength={30}
@@ -114,24 +115,20 @@ export default function UsernameModal({ open, onComplete }: UsernameModalProps) 
                 {!isChecking && username.length >= 3 && isAvailable !== null && (
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
                     {isAvailable ? (
-                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
+                      <Check className="w-5 h-5 text-green-400" />
                     ) : (
-                      <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      <X className="w-5 h-5 text-red-400" />
                     )}
                   </div>
                 )}
               </div>
               {username.length >= 3 && (
-                <p className={`mt-2 text-sm ${isAvailable ? 'text-green-600' : 'text-red-600'}`}>
+                <p className={`mt-2 text-sm ${isAvailable ? 'text-green-400' : 'text-red-400'}`}>
                   {error || (isAvailable && 'Username is available!')}
                 </p>
               )}
               {username.length > 0 && username.length < 3 && (
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-2 text-sm text-white text-opacity-50">
                   Username must be at least 3 characters
                 </p>
               )}
@@ -141,7 +138,7 @@ export default function UsernameModal({ open, onComplete }: UsernameModalProps) 
               <button
                 type="submit"
                 disabled={!isAvailable || isSubmitting}
-                className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+                className="flex-1 px-4 py-2 bg-white text-warm-text rounded-lg hover:bg-opacity-90 transition-colors disabled:bg-white disabled:bg-opacity-30 disabled:cursor-not-allowed font-medium"
               >
                 {isSubmitting ? 'Setting username...' : 'Continue'}
               </button>

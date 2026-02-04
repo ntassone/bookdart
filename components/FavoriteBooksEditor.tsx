@@ -1,8 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import CompactBookCard from './CompactBookCard'
 import { Tooltip } from '@base-ui/react/tooltip'
+import { Heart, X, PlusSquareIcon } from 'lucide-react'
 import type { Book } from '@/lib/types/book'
+import type { UserBook } from '@/lib/types/userBook'
 
 interface FavoriteBooksEditorProps {
   favoriteBooks: Book[]
@@ -11,6 +14,7 @@ interface FavoriteBooksEditorProps {
   onAddClick?: () => void
   onBookAdded?: () => void
   showActions?: boolean
+  bookStatuses?: Record<string, UserBook[]>
 }
 
 /**
@@ -24,7 +28,10 @@ export default function FavoriteBooksEditor({
   onAddClick,
   onBookAdded,
   showActions = true,
+  bookStatuses,
 }: FavoriteBooksEditorProps) {
+  const [isHovering, setIsHovering] = useState<number | null>(null)
+
   // Always create 4 slots
   const slots = Array.from({ length: 4 }, (_, index) => {
     return favoriteBooks[index] || null
@@ -35,20 +42,19 @@ export default function FavoriteBooksEditor({
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <svg className="w-5 h-5 text-warm-text-secondary" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-        </svg>
-        <h2 className="text-lg font-bold text-warm-text uppercase">Favorite Books</h2>
+        <Heart className="w-4 h-4 text-warm-text-secondary" strokeWidth={1} />
+        <h2 className="text-xs tracking-wide uppercase text-warm-text-tertiary">Favorite Books</h2>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="flex gap-3">
         {slots.map((book, index) =>
           book ? (
             // Filled slot with book
-            <div key={book.id} className="relative group">
+            <div key={book.id} className="relative group w-[130px] flex-shrink-0">
               <CompactBookCard
                 book={book}
                 showAddButton={showActions}
                 onBookAdded={onBookAdded}
+                initialBookStatus={bookStatuses?.[book.id]}
               />
               {/* Remove Button - only show when editable */}
               {canEdit && onRemove && (
@@ -58,14 +64,12 @@ export default function FavoriteBooksEditor({
                       onClick={() => onRemove(book.id)}
                       className="absolute top-2 right-2 p-1.5 bg-warm-bg-secondary border border-warm-border opacity-0 group-hover:opacity-100 transition-opacity hover:bg-warm-bg z-20"
                     >
-                      <svg className="w-4 h-4 text-warm-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      <X className="w-4 h-4 text-warm-text-secondary" />
                     </button>
                   </Tooltip.Trigger>
                   <Tooltip.Portal>
                     <Tooltip.Positioner sideOffset={4}>
-                      <Tooltip.Popup className="bg-gray-800 text-white text-xs px-2 py-1 z-50">
+                      <Tooltip.Popup className="z-50 px-2 py-1 text-xs text-white bg-warm-text rounded transition-all duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
                         Remove from favorites
                       </Tooltip.Popup>
                     </Tooltip.Positioner>
@@ -75,15 +79,39 @@ export default function FavoriteBooksEditor({
             </div>
           ) : (
             // Empty slot - blank placeholder
-            <div key={`empty-${index}`}>
+            <div key={`empty-${index}`} className="w-[130px] flex-shrink-0">
               {canEdit && onAddClick ? (
-                <button
-                  onClick={onAddClick}
-                  className="aspect-[2/3] border border-warm-border bg-warm-text-tertiary opacity-30 hover:opacity-40 transition-opacity w-full"
-                  aria-label="Add favorite book"
-                />
+                <Tooltip.Root>
+                  <Tooltip.Trigger
+                    onClick={onAddClick}
+                    onMouseEnter={() => setIsHovering(index)}
+                    onMouseLeave={() => setIsHovering(null)}
+                    className="relative flex items-center justify-center w-full overflow-hidden border cursor-pointer aspect-[2/3] bg-warm-bg bg-gradient-to-br border-transparent from-warm-bg/80 hover:from-warm-bg hover:border-warm-border to-transparent"
+                    style={{
+                      backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 1px, rgba(0,0,0,0.05) 1px, rgba(0,0,0,0.05) 8px)'
+                    }}
+                  >
+                    {isHovering === index && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <PlusSquareIcon strokeWidth={1} className="w-6 h-6 text-warm-text-secondary" />
+                      </div>
+                    )}
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Positioner sideOffset={4}>
+                      <Tooltip.Popup className="z-50 px-2 py-1 text-xs bg-warm-bg-secondary text-warm-text border border-warm-border transition-all duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+                        Pick a favorite book
+                      </Tooltip.Popup>
+                    </Tooltip.Positioner>
+                  </Tooltip.Portal>
+                </Tooltip.Root>
               ) : (
-                <div className="aspect-[2/3] border border-warm-border bg-warm-text-tertiary opacity-30" />
+                <div
+                  className="relative flex items-center justify-center w-full overflow-hidden border aspect-[2/3] bg-warm-bg bg-gradient-to-br border-transparent from-warm-bg/80 to-transparent"
+                  style={{
+                    backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 1px, rgba(0,0,0,0.05) 1px, rgba(0,0,0,0.05) 8px)'
+                  }}
+                />
               )}
             </div>
           )

@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { MoreVertical } from 'lucide-react'
 import { useAuth } from '@/lib/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useToast } from '@/lib/contexts/ToastContext'
 import Navigation from '@/components/Navigation'
 import BookCard from '@/components/BookCard'
@@ -10,7 +12,8 @@ import FavoriteBooksEditor from '@/components/FavoriteBooksEditor'
 import CurrentlyReadingSection from '@/components/CurrentlyReadingSection'
 import AddFavoriteModal from '@/components/AddFavoriteModal'
 import LoadingIndicator from '@/components/LoadingIndicator'
-import { useProfileByUsername, useCurrentUserProfile, useUserBooks, useCachedBooks, useAddToFavorites, useRemoveFromFavorites, useReorderFavorites } from '@/lib/hooks/useProfileData'
+import BookSearchPanel from '@/components/BookSearchPanel'
+import { useProfileByUsername, useCurrentUserProfile, useUserBooks, useUserBooksByUserId, useCachedBooks, useAddToFavorites, useRemoveFromFavorites, useReorderFavorites } from '@/lib/hooks/useProfileData'
 import type { BookStatus } from '@/lib/types/userBook'
 import type { Book } from '@/lib/types/book'
 
@@ -27,15 +30,37 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const [filter, setFilter] = useState<BookStatus | 'all'>('all')
   const [showAddFavoriteModal, setShowAddFavoriteModal] = useState(false)
   const [isOwnProfile, setIsOwnProfile] = useState(false)
+  const [currentlyReadingCleared, setCurrentlyReadingCleared] = useState(false)
+  const [isSearchingBook, setIsSearchingBook] = useState(false)
 
   // Fetch profile data using React Query
   const { data: profile, isLoading: profileLoading } = useProfileByUsername(params.username)
   const { data: currentUserProfile } = useCurrentUserProfile()
 
-  // Fetch books only if viewing own profile
-  const { data: books = [], isLoading: booksLoading, refetch: refetchBooks } = useUserBooks(
+  // Fetch own books (for own profile) - filtered for display
+  const { data: ownBooks = [], isLoading: ownBooksLoading, refetch: refetchBooks } = useUserBooks(
     isOwnProfile ? (filter === 'all' ? undefined : filter) : undefined
   )
+
+  // Fetch ALL own books (unfiltered) for stats calculation
+  const { data: allOwnBooks = [] } = useUserBooks(isOwnProfile ? undefined : undefined)
+
+  // Fetch other user's books (for viewing other profiles) - filtered for display
+  const { data: otherUserBooks = [], isLoading: otherBooksLoading } = useUserBooksByUserId(
+    !isOwnProfile ? profile?.user_id : undefined,
+    filter === 'all' ? undefined : filter
+  )
+
+  // Fetch ALL other user's books (unfiltered) for stats calculation
+  const { data: allOtherUserBooks = [] } = useUserBooksByUserId(
+    !isOwnProfile ? profile?.user_id : undefined,
+    undefined
+  )
+
+  // Use the appropriate books based on whether viewing own profile
+  const books = isOwnProfile ? ownBooks : otherUserBooks
+  const allBooks = isOwnProfile ? allOwnBooks : allOtherUserBooks
+  const booksLoading = isOwnProfile ? ownBooksLoading : otherBooksLoading
 
   // Fetch favorite books using cache
   const favoriteBookIds = profile?.favorite_books || []
@@ -56,24 +81,54 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   }, [currentUserProfile, params.username, authLoading])
 
   // Convert UserBook to Book format
-  const convertToBook = (userBook: typeof books[number]): Book => ({
+  const convertToBook = useCallback((userBook: typeof books[number]): Book => ({
     id: userBook.book_id,
     title: userBook.title,
     authors: userBook.authors,
     publishYear: userBook.publish_year,
     coverUrl: userBook.cover_url,
     isbn: userBook.isbn,
-  })
+  }), [])
 
-  // Extract currently reading books
+  // Extract currently reading books - only show the most recently updated one
   const currentlyReading = useMemo(() => {
-    if (!isOwnProfile || !books) return []
-    return books
-      .filter(b => b.status === 'reading')
-      .map(convertToBook)
-  }, [books, isOwnProfile])
+    if (!isOwnProfile || !books || currentlyReadingCleared) return []
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-  const handleAddFavorite = async (book: Book) => {
+    const readingBooks = books
+      .filter(b => b.status === 'reading')
+      .filter(b => new Date(b.updated_at) > thirtyDaysAgo) // Only show books updated in last 30 days
+      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+      .slice(0, 1) // Only take the most recently updated reading book
+      .map(convertToBook)
+    return readingBooks
+  }, [books, isOwnProfile, currentlyReadingCleared, convertToBook])
+
+  // Calculate profile stats from ALL books (unfiltered)
+  const stats = useMemo(() => {
+    const booksRead = allBooks.filter(b => b.status === 'read').length
+    const wantToRead = allBooks.filter(b => b.status === 'want-to-read').length
+    const reviews = allBooks.filter(b => b.status === 'read' && b.rating != null).length
+    return { booksRead, wantToRead, reviews }
+  }, [allBooks])
+
+  // Track previous reading count to detect when NEW reading books are added
+  const previousReadingCountRef = useRef(0)
+
+  // Reset cleared flag only when a NEW book is added to reading (count increases)
+  useEffect(() => {
+    const currentReadingCount = books.filter(b => b.status === 'reading').length
+
+    // Only reset if count increased (new book added)
+    if (currentReadingCount > previousReadingCountRef.current && currentlyReadingCleared) {
+      setCurrentlyReadingCleared(false)
+    }
+
+    previousReadingCountRef.current = currentReadingCount
+  }, [books, currentlyReadingCleared])
+
+  const handleAddFavorite = useCallback(async (book: Book) => {
     if (!isOwnProfile) return
 
     try {
@@ -82,9 +137,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     } catch (error) {
       addToast(error instanceof Error ? error.message : 'Failed to add favorite', 'error')
     }
-  }
+  }, [isOwnProfile, addToFavoritesMutation, addToast])
 
-  const handleRemoveFavorite = async (bookId: string) => {
+  const handleRemoveFavorite = useCallback(async (bookId: string) => {
     if (!isOwnProfile) return
 
     try {
@@ -93,9 +148,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     } catch (error) {
       addToast(error instanceof Error ? error.message : 'Failed to remove favorite', 'error')
     }
-  }
+  }, [isOwnProfile, removeFromFavoritesMutation, addToast])
 
-  const handleReorderFavorites = async (bookIds: string[]) => {
+  const handleReorderFavorites = useCallback(async (bookIds: string[]) => {
     if (!isOwnProfile) return
 
     try {
@@ -103,7 +158,11 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     } catch (error) {
       console.error('Failed to reorder favorites:', error)
     }
-  }
+  }, [isOwnProfile, reorderFavoritesMutation])
+
+  const handleCurrentlyReadingCleared = useCallback(() => {
+    setCurrentlyReadingCleared(true)
+  }, [])
 
   // Get filtered books for the list section (exclude currently reading from the main list)
   const filteredBooks = useMemo(() => {
@@ -113,14 +172,25 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     return books
   }, [books, filter])
 
+  // Create bookStatuses record for batch optimization
+  const bookStatuses = useMemo(() => {
+    return books.reduce((acc, userBook) => {
+      if (!acc[userBook.book_id]) {
+        acc[userBook.book_id] = []
+      }
+      acc[userBook.book_id].push(userBook)
+      return acc
+    }, {} as Record<string, typeof books>)
+  }, [books])
+
   // Combined loading state
   const loading = profileLoading || authLoading
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="flex flex-col min-h-screen">
         <Navigation />
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex items-center justify-center flex-1">
           <LoadingIndicator size="lg" />
         </div>
       </div>
@@ -129,15 +199,15 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="flex flex-col min-h-screen">
         <Navigation />
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex items-center justify-center flex-1">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-warm-text mb-2">User not found</h1>
-            <p className="text-warm-text-secondary mb-4">No user with username @{params.username}</p>
+            <h1 className="mb-2 text-2xl font-bold text-warm-text">User not found</h1>
+            <p className="mb-4 text-warm-text-secondary">No user with username @{params.username}</p>
             <button
               onClick={() => router.push('/')}
-              className="text-warm-text font-semibold hover:text-warm-text-secondary transition-colors"
+              className="font-semibold transition-colors text-warm-text hover:text-warm-text-secondary"
             >
               Go home →
             </button>
@@ -148,32 +218,44 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-warm-bg-secondary">
+    <div className="flex flex-col min-h-screen bg-warm-bg-secondary">
       <Navigation />
 
-      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+      <div className="flex-1 w-full px-4 py-12 mx-auto max-w-7xl sm:px-6 lg:px-8">
         {/* Profile Header Section */}
-        <div className="grid grid-cols-12 gap-6 mb-12">
+        <div className={`grid p-2 mb-12 border border-warm-border bg-warm-bg-secondary shadow-[0_5px_0_0] shadow-warm-bg ${isSearchingBook ? 'gap-2' : 'gap-8'}`} style={{ gridTemplateColumns: '280px 1fr' }}>
           {/* Left: Reading Now - Large Book Cover */}
-          <div className="col-span-3">
+          <div className="h-full min-w-0">
             <CurrentlyReadingSection
               books={currentlyReading}
               onBookAdded={refetchBooks}
+              onBookRemoved={handleCurrentlyReadingCleared}
               showLarge={true}
               editable={isOwnProfile}
+              bookStatuses={bookStatuses}
+              onSearchModeChange={setIsSearchingBook}
+              isSearchMode={isSearchingBook}
             />
           </div>
 
-          {/* Center: Profile Info */}
-          <div className="col-span-5 flex flex-col">
-            {/* Avatar and Profile Info */}
-            <div className="flex items-start gap-4 mb-auto">
+          {/* Right: Profile Info, Stats, and Favorites OR Book Search */}
+          {isSearchingBook ? (
+            <div className="flex flex-col h-full min-w-0 overflow-hidden">
+              <BookSearchPanel
+                onClose={() => setIsSearchingBook(false)}
+                onBookSelected={refetchBooks}
+              />
+            </div>
+          ) : (
+          <div className="flex flex-col h-full min-w-0 gap-8 p-6 overflow-hidden">
+            {/* Row 1: Profile Info */}
+            <div className="flex items-start gap-8">
               {/* Avatar */}
-              <div className="w-24 h-24 bg-warm-border overflow-hidden flex-shrink-0">
+              <div className="flex-shrink-0 w-16 h-16 overflow-hidden rounded-s-sm bg-warm-border">
                 {user?.user_metadata?.avatar_url ? (
-                  <img src={user.user_metadata.avatar_url} alt={profile.username || 'User'} className="w-full h-full object-cover" />
+                  <img src={user.user_metadata.avatar_url} alt={profile.username || 'User'} className="object-cover w-full h-full" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-warm-text-secondary text-3xl font-bold">
+                  <div className="flex items-center justify-center w-full h-full text-3xl font-bold text-warm-text-secondary">
                     {profile.username?.[0]?.toUpperCase() || 'U'}
                   </div>
                 )}
@@ -181,68 +263,82 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
               {/* Name, Username, Location */}
               <div className="flex-1 pt-1">
-                <h1 className="text-2xl font-bold text-warm-text mb-2">
+                <h1 className="mb-2 text-2xl font-semibold text-warm-text">
                   {user?.user_metadata?.full_name || 'Nick Tassone'}
                 </h1>
-                <div className="flex items-center gap-3 text-sm text-warm-text-secondary mb-2">
+                <div className="flex items-center gap-3 text-sm text-warm-text-secondary">
                   <span>@{profile.username}</span>
                   <span>Hamilton, ON</span>
+                  <a href="#" className="hover:underline">32 Followers</a>
                 </div>
-                <a href="#" className="text-sm text-warm-text-secondary hover:underline">32 Followers</a>
               </div>
+
+              {/* Follow buttons - only for other profiles */}
+              {!isOwnProfile && (
+                <div className="flex gap-2">
+                  <button className="px-6 py-2 text-sm font-semibold tracking-wide transition-colors bg-warm-text text-warm-bg-secondary hover:bg-warm-text-secondary">
+                    FOLLOW
+                  </button>
+                  <button className="p-2 transition-colors border border-warm-border hover:bg-warm-bg">
+                    <MoreVertical className="w-5 h-5" />
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* Stats Boxes at Bottom */}
-            <div className="grid grid-cols-3 gap-4 mt-auto">
-              <div className="bg-warm-bg p-6 text-center border border-warm-border">
-                <div className="text-3xl font-bold text-warm-text mb-1">2,345</div>
-                <div className="text-xs text-warm-text-secondary uppercase tracking-wide">BOOKS READ</div>
+            {/* Row 2: Stats and Favorites */}
+            <div className="flex min-w-0 gap-12">
+              {/* Stats Box - Grows to fill space */}
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col">
+                  <Link
+                    href={`/${params.username}?filter=read`}
+                    className="flex items-center justify-between p-3 transition-colors border-b border-warm-border hover:bg-warm-bg-secondary/30"
+                  >
+                    <div className="text-xl font-regular text-warm-text">{stats.booksRead.toLocaleString()}</div>
+                    <div className="text-xs tracking-wide uppercase text-warm-text-tertiary">Books read</div>
+                  </Link>
+                  <Link
+                    href={`/${params.username}?filter=want-to-read`}
+                    className="flex items-center justify-between p-3 transition-colors border-b border-warm-border hover:bg-warm-bg-secondary/30"
+                  >
+                    <div className="text-xl font-regular text-warm-text">{stats.wantToRead.toLocaleString()}</div>
+                    <div className="text-xs tracking-wide uppercase text-warm-text-tertiary">Read list</div>
+                  </Link>
+                  <Link
+                    href={`/${params.username}#reviews`}
+                    className="flex items-center justify-between p-3 transition-colors hover:bg-warm-bg-secondary/30"
+                  >
+                    <div className="text-xl font-regular text-warm-text">{stats.reviews.toLocaleString()}</div>
+                    <div className="text-xs tracking-wide uppercase text-warm-text-tertiary">Reviews</div>
+                  </Link>
+                </div>
               </div>
-              <div className="bg-warm-bg p-6 text-center border border-warm-border">
-                <div className="text-3xl font-bold text-warm-text mb-1">1,299</div>
-                <div className="text-xs text-warm-text-secondary uppercase tracking-wide">READ LIST</div>
-              </div>
-              <div className="bg-warm-bg p-6 text-center border border-warm-border">
-                <div className="text-3xl font-bold text-warm-text mb-1">120</div>
-                <div className="text-xs text-warm-text-secondary uppercase tracking-wide">REVIEWS</div>
+
+              {/* Favorite Books */}
+              <div className="flex-shrink-0">
+                <FavoriteBooksEditor
+                  favoriteBooks={favoriteBooks}
+                  onReorder={isOwnProfile ? handleReorderFavorites : undefined}
+                  onRemove={isOwnProfile ? handleRemoveFavorite : undefined}
+                  onAddClick={isOwnProfile ? () => setShowAddFavoriteModal(true) : undefined}
+                  onBookAdded={refetchBooks}
+                  showActions={!isOwnProfile}
+                  bookStatuses={bookStatuses}
+                />
               </div>
             </div>
           </div>
-
-          {/* Right: Favorite Books and Follow Button */}
-          <div className="col-span-4 relative">
-            {/* Follow Button - Top Right */}
-            {!isOwnProfile && (
-              <div className="absolute top-0 right-0 flex gap-2">
-                <button className="px-6 py-2 bg-warm-text text-warm-bg-secondary font-semibold hover:bg-warm-text-secondary transition-colors text-sm tracking-wide">
-                  FOLLOW
-                </button>
-                <button className="p-2 border border-warm-border hover:bg-warm-bg transition-colors">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                  </svg>
-                </button>
-              </div>
-            )}
-
-            <FavoriteBooksEditor
-              favoriteBooks={favoriteBooks}
-              onReorder={isOwnProfile ? handleReorderFavorites : undefined}
-              onRemove={isOwnProfile ? handleRemoveFavorite : undefined}
-              onAddClick={isOwnProfile ? () => setShowAddFavoriteModal(true) : undefined}
-              onBookAdded={refetchBooks}
-              showActions={!isOwnProfile}
-            />
-          </div>
+          )}
         </div>
 
         <div className="space-y-8">
 
           {/* Book Lists - Only show on own profile for now */}
           {isOwnProfile && (
-            <div className="border border-warm-border p-6 bg-warm-bg-secondary">
+            <div className="p-6 border border-warm-border bg-warm-bg-secondary">
               <div className="mb-6">
-                <h2 className="text-xl font-bold text-warm-text mb-4">My Lists</h2>
+                <h2 className="mb-4 text-xl font-bold text-warm-text">My Lists</h2>
 
                 {/* Filter Tabs */}
                 <div className="flex gap-2 border-b border-warm-border">
@@ -280,23 +376,24 @@ export default function ProfilePage({ params }: ProfilePageProps) {
               </div>
 
               {filteredBooks.length === 0 ? (
-                <div className="text-center py-20">
-                  <p className="text-warm-text-secondary mb-4">No books in this list yet</p>
+                <div className="py-20 text-center">
+                  <p className="mb-4 text-warm-text-secondary">No books in this list yet</p>
                   <button
                     onClick={() => router.push('/search')}
-                    className="text-warm-text font-semibold hover:text-warm-text-secondary transition-colors"
+                    className="font-semibold transition-colors text-warm-text hover:text-warm-text-secondary"
                   >
                     Browse books to add →
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
                   {filteredBooks.map((userBook) => (
                     <BookCard
                       key={userBook.id}
                       book={convertToBook(userBook)}
                       showAddButton={true}
                       onBookAdded={refetchBooks}
+                      initialBookStatus={bookStatuses[userBook.book_id]}
                     />
                   ))}
                 </div>
@@ -306,7 +403,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
           {/* Message for viewing other profiles - temporary */}
           {!isOwnProfile && (
-            <div className="border border-warm-border p-6 bg-warm-bg-secondary text-center py-12">
+            <div className="p-6 py-12 text-center border border-warm-border bg-warm-bg-secondary">
               <p className="text-warm-text-secondary">
                 Public profile viewing coming soon
               </p>

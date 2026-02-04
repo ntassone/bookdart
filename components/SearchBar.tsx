@@ -81,7 +81,7 @@ export default function SearchBar({ value, onChange, placeholder = 'Search for b
     <div ref={containerRef} className="relative w-full max-w-2xl">
       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
         <svg
-          className="h-5 w-5 text-gray-500"
+          className="h-5 w-5 text-neutral-500"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -100,23 +100,23 @@ export default function SearchBar({ value, onChange, placeholder = 'Search for b
         onFocus={() => setIsFocused(true)}
         placeholder={placeholder}
         className={({ focused }) => `
-          w-full pl-12 pr-4 py-3 text-gray-700 bg-white border rounded-lg transition-all
-          ${focused ? 'border-gray-400 ring-2 ring-gray-300 outline-none' : 'border-gray-300'}
+          w-full pl-12 pr-4 py-3 text-neutral-700 bg-white border rounded-lg transition-all
+          ${focused ? 'border-neutral-400 ring-2 ring-neutral-300 outline-none' : 'border-neutral-300'}
         `}
       />
 
       {/* Recent Dropdown - Columns on Desktop, Tabs on Mobile */}
       {showDropdown && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-neutral-200 rounded-lg shadow-lg z-20">
           {/* Mobile: Tabs - Only show if both sections have items */}
           {recentBooks.length > 0 && (
-            <div className="md:hidden flex border-b border-gray-200">
+            <div className="md:hidden flex border-b border-neutral-200">
               <button
                 onClick={() => setActiveTab('searches')}
                 className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
                   activeTab === 'searches'
-                    ? 'text-gray-700 border-b-2 border-gray-600'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'text-neutral-700 border-b-2 border-neutral-600'
+                    : 'text-neutral-500 hover:text-neutral-700'
                 }`}
               >
                 Recent Searches
@@ -125,8 +125,8 @@ export default function SearchBar({ value, onChange, placeholder = 'Search for b
                 onClick={() => setActiveTab('books')}
                 className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
                   activeTab === 'books'
-                    ? 'text-gray-700 border-b-2 border-gray-600'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'text-neutral-700 border-b-2 border-neutral-600'
+                    : 'text-neutral-500 hover:text-neutral-700'
                 }`}
               >
                 Recently Visited
@@ -142,22 +142,22 @@ export default function SearchBar({ value, onChange, placeholder = 'Search for b
                   <ul>
                     {recentSearches.map((search, index) => (
                       <li key={index} className="group">
-                        <div className="flex items-center hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center hover:bg-neutral-50 transition-colors">
                           <button
                             onClick={() => handleSelectSearch(search)}
-                            className="flex-1 px-4 py-3 text-left text-gray-700 flex items-center gap-3"
+                            className="flex-1 px-4 py-3 text-left text-neutral-700 flex items-center gap-3"
                           >
-                            <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 text-neutral-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <span>{search}</span>
                           </button>
                           <button
                             onClick={() => handleRemoveSearch(search)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity p-2 mr-2 hover:bg-gray-200 rounded"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity p-2 mr-2 hover:bg-neutral-200 rounded"
                             aria-label="Remove"
                           >
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                           </button>
@@ -166,7 +166,7 @@ export default function SearchBar({ value, onChange, placeholder = 'Search for b
                     ))}
                   </ul>
                 ) : (
-                  <div className="px-4 py-8 text-center text-sm text-gray-500">
+                  <div className="px-4 py-8 text-center text-sm text-neutral-500">
                     No recent searches
                   </div>
                 )}
@@ -191,27 +191,27 @@ export default function SearchBar({ value, onChange, placeholder = 'Search for b
           {/* Desktop: Column Layout */}
           <div className={`hidden md:grid max-h-[400px] overflow-hidden ${recentBooks.length > 0 ? 'md:grid-cols-2' : 'md:grid-cols-1'}`}>
             {/* Recent Searches Column */}
-            <div className={`overflow-y-auto ${recentBooks.length > 0 ? 'border-r border-gray-200' : ''}`}>
+            <div className={`overflow-y-auto ${recentBooks.length > 0 ? 'border-r border-neutral-200' : ''}`}>
               {recentSearches.length > 0 ? (
                 <ul>
                   {recentSearches.map((search, index) => (
                     <li key={index} className="group">
-                      <div className="flex items-center hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center hover:bg-neutral-50 transition-colors">
                         <button
                           onClick={() => handleSelectSearch(search)}
-                          className="flex-1 px-4 py-3 text-left text-gray-700 flex items-center gap-3"
+                          className="flex-1 px-4 py-3 text-left text-neutral-700 flex items-center gap-3"
                         >
-                          <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 text-neutral-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                           <span className="truncate">{search}</span>
                         </button>
                         <button
                           onClick={() => handleRemoveSearch(search)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-2 mr-2 hover:bg-gray-200 rounded"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-2 mr-2 hover:bg-neutral-200 rounded"
                           aria-label="Remove"
                         >
-                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                           </svg>
                         </button>
@@ -220,7 +220,7 @@ export default function SearchBar({ value, onChange, placeholder = 'Search for b
                   ))}
                 </ul>
               ) : (
-                <div className="px-4 py-8 text-center text-sm text-gray-500">
+                <div className="px-4 py-8 text-center text-sm text-neutral-500">
                   No recent searches
                 </div>
               )}

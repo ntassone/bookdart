@@ -54,16 +54,16 @@ export default function BookDetailClient({ initialData }: BookDetailClientProps)
   const otherReviews = publicReviews.filter(r => r.user_id !== user?.id)
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-neutral-50">
       <Navigation />
 
       <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         {/* Header - Title, Author, Year */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-700 mb-2">{book.title}</h1>
-          <p className="text-xl text-gray-600 mb-1">{book.authors.join(', ')}</p>
+          <h1 className="text-4xl font-bold text-neutral-700 mb-2">{book.title}</h1>
+          <p className="text-xl text-neutral-600 mb-1">{book.authors.join(', ')}</p>
           {book.publishYear && (
-            <p className="text-lg text-gray-500">{book.publishYear}</p>
+            <p className="text-lg text-neutral-500">{book.publishYear}</p>
           )}
         </div>
 
@@ -84,15 +84,15 @@ export default function BookDetailClient({ initialData }: BookDetailClientProps)
             <div className="bg-white rounded-lg shadow-sm p-6">
                 {/* Average Rating */}
                 {totalReviews > 0 && averageRating && (
-                  <div className="mb-6 pb-6 border-b border-gray-200">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-2">Average Rating</h3>
+                  <div className="mb-6 pb-6 border-b border-neutral-200">
+                    <h3 className="text-sm font-semibold text-neutral-700 mb-2">Average Rating</h3>
                     <div className="flex items-center gap-2 mb-1">
                       <StarRating rating={averageRating} size="md" />
-                      <span className="text-lg font-semibold text-gray-700">
+                      <span className="text-lg font-semibold text-neutral-700">
                         {averageRating.toFixed(1)}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-neutral-500">
                       {totalReviews} {totalReviews === 1 ? 'review' : 'reviews'}
                     </p>
                   </div>
@@ -100,9 +100,9 @@ export default function BookDetailClient({ initialData }: BookDetailClientProps)
 
                 {/* ISBN if available */}
                 {book.isbn && book.isbn.length > 0 && (
-                  <div className="mb-6 pb-6 border-b border-gray-200">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-2">ISBN</h3>
-                    <p className="text-sm text-gray-600">{book.isbn[0]}</p>
+                  <div className="mb-6 pb-6 border-b border-neutral-200">
+                    <h3 className="text-sm font-semibold text-neutral-700 mb-2">ISBN</h3>
+                    <p className="text-sm text-neutral-600">{book.isbn[0]}</p>
                   </div>
                 )}
 
@@ -115,15 +115,15 @@ export default function BookDetailClient({ initialData }: BookDetailClientProps)
                 ) : (
                   <div className="space-y-3">
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-700 mb-2">Your Status</h3>
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700 capitalize">
+                      <h3 className="text-sm font-semibold text-neutral-700 mb-2">Your Status</h3>
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-neutral-100 text-neutral-700 capitalize">
                         {userBook.status.replace('-', ' ')}
                       </span>
                     </div>
                     {userBook.status === 'read' && (
                       <button
                         onClick={handleMarkReread}
-                        className="w-full px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                        className="w-full px-4 py-2 text-sm border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors"
                       >
                         Mark as Reread
                       </button>
@@ -138,7 +138,7 @@ export default function BookDetailClient({ initialData }: BookDetailClientProps)
             {/* User's Review Section */}
             {user && userBook && userBook.status === 'read' && (
               <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-bold text-gray-700 mb-4">Your Review</h2>
+                <h2 className="text-xl font-bold text-neutral-700 mb-4">Your Review</h2>
 
                 {isEditingReview ? (
                   <ReviewForm
@@ -162,12 +162,12 @@ export default function BookDetailClient({ initialData }: BookDetailClientProps)
                           )}
                         </div>
                         {userBook.date_finished && (
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-neutral-500">
                             Finished: {new Date(userBook.date_finished).toLocaleDateString()}
                           </p>
                         )}
                         {userBook.notes && (
-                          <p className="text-gray-700 whitespace-pre-wrap">{userBook.notes}</p>
+                          <p className="text-neutral-700 whitespace-pre-wrap">{userBook.notes}</p>
                         )}
                         {userBook.read_count > 1 && (
                           <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
@@ -176,17 +176,17 @@ export default function BookDetailClient({ initialData }: BookDetailClientProps)
                         )}
                         <button
                           onClick={() => setIsEditingReview(true)}
-                          className="text-sm text-gray-600 hover:text-gray-700 font-medium"
+                          className="text-sm text-neutral-600 hover:text-neutral-700 font-medium"
                         >
                           Edit Review
                         </button>
                       </div>
                     ) : (
                       <div>
-                        <p className="text-gray-500 mb-4">You haven&apos;t reviewed this book yet.</p>
+                        <p className="text-neutral-500 mb-4">You haven&apos;t reviewed this book yet.</p>
                         <button
                           onClick={() => setIsEditingReview(true)}
-                          className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
+                          className="px-4 py-2 bg-neutral-600 text-white rounded-lg hover:bg-neutral-700 transition-colors font-medium"
                         >
                           Write a Review
                         </button>
@@ -199,7 +199,7 @@ export default function BookDetailClient({ initialData }: BookDetailClientProps)
 
             {/* Public Reviews */}
             <div>
-              <h2 className="text-xl font-bold text-gray-700 mb-4">
+              <h2 className="text-xl font-bold text-neutral-700 mb-4">
                 Community Reviews {otherReviews.length > 0 && `(${otherReviews.length})`}
               </h2>
 
@@ -211,7 +211,7 @@ export default function BookDetailClient({ initialData }: BookDetailClientProps)
                 </div>
               ) : (
                 <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-                  <p className="text-gray-500">No public reviews yet. Be the first to review!</p>
+                  <p className="text-neutral-500">No public reviews yet. Be the first to review!</p>
                 </div>
               )}
             </div>

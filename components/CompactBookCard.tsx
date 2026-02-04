@@ -1,9 +1,11 @@
 'use client'
 
+import React from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Tooltip } from '@base-ui/react/tooltip'
 import type { Book } from '@/lib/types/book'
+import type { UserBook } from '@/lib/types/userBook'
 import BookCardActions from './BookCardActions'
 import { generateBookUrl } from '@/lib/utils/bookUrl'
 import { useUserPreferences } from '@/lib/contexts/UserPreferencesContext'
@@ -15,13 +17,14 @@ interface CompactBookCardProps {
   showAddButton?: boolean
   onBookAdded?: () => void
   hideWantToRead?: boolean
+  initialBookStatus?: UserBook[]
 }
 
 /**
  * Compact version of BookCard that hides title/author/year
  * and displays them in a tooltip instead
  */
-export default function CompactBookCard({ book, onClick, showAddButton = false, onBookAdded, hideWantToRead = false }: CompactBookCardProps) {
+const CompactBookCard = React.memo(function CompactBookCard({ book, onClick, showAddButton = false, onBookAdded, hideWantToRead = false, initialBookStatus }: CompactBookCardProps) {
   const router = useRouter()
   const { fadeCompletedBooks } = useUserPreferences()
   const { readBookIds } = useReadBooks()
@@ -59,8 +62,8 @@ export default function CompactBookCard({ book, onClick, showAddButton = false, 
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 20vw"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-600 p-4">
-                  <p className="text-gray-200 text-center text-lg font-bold line-clamp-6">
+                <div className="w-full h-full flex items-center justify-center bg-neutral-600 p-4">
+                  <p className="text-neutral-200 text-center text-lg font-bold line-clamp-6">
                     {book.title}
                   </p>
                 </div>
@@ -100,14 +103,14 @@ export default function CompactBookCard({ book, onClick, showAddButton = false, 
 
             {/* Action buttons on hover - overlay on cover at full opacity */}
             {showAddButton && (
-              <BookCardActions book={book} onAdded={onBookAdded} hideWantToRead={hideWantToRead} />
+              <BookCardActions book={book} onAdded={onBookAdded} hideWantToRead={hideWantToRead} initialStatus={initialBookStatus} />
             )}
           </div>
         </div>
       </Tooltip.Trigger>
       <Tooltip.Portal>
         <Tooltip.Positioner sideOffset={8}>
-          <Tooltip.Popup className="bg-gray-800 text-white px-3 py-2 max-w-[200px] z-50 rounded">
+          <Tooltip.Popup className="bg-neutral-800 text-white px-3 py-2 max-w-[200px] z-50 rounded transition-all duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
             <p className="font-semibold text-sm mb-1">{book.title}</p>
             <p className="text-xs opacity-80">{authors}</p>
             {book.publishYear && (
@@ -118,4 +121,6 @@ export default function CompactBookCard({ book, onClick, showAddButton = false, 
       </Tooltip.Portal>
     </Tooltip.Root>
   )
-}
+});
+
+export default CompactBookCard;

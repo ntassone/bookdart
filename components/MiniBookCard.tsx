@@ -23,9 +23,9 @@ export default function MiniBookCard({ book, onClick, onDismiss }: MiniBookCardP
   return (
     <button
       onClick={onClick}
-      className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 group"
+      className="w-full px-4 py-3 text-left hover:bg-neutral-50 transition-colors flex items-center gap-3 group"
     >
-      <div className="relative flex-shrink-0 w-10 h-14 bg-gray-200 rounded overflow-hidden">
+      <div className="relative flex-shrink-0 w-10 h-14 bg-neutral-200 rounded overflow-hidden">
         {coverUrl ? (
           <Image
             src={coverUrl}
@@ -36,24 +36,24 @@ export default function MiniBookCard({ book, onClick, onDismiss }: MiniBookCardP
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
           </div>
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-700 truncate">{book.title}</p>
+        <p className="text-sm font-medium text-neutral-700 truncate">{book.title}</p>
         {authorName && (
-          <p className="text-xs text-gray-500 truncate">{authorName}</p>
+          <p className="text-xs text-neutral-500 truncate">{authorName}</p>
         )}
       </div>
       <button
         onClick={handleDismiss}
-        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-200 rounded"
+        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-neutral-200 rounded"
         aria-label="Remove"
       >
-        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>

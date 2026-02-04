@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { BookOpen } from 'lucide-react'
 import { Dialog } from '@base-ui/react/dialog'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import type { Book } from '@/lib/types/book'
@@ -60,12 +61,12 @@ export default function AddFavoriteModal({
     <Dialog.Root open={open} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 bg-black/50 z-50" />
-        <Dialog.Popup className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white border border-gray-200 w-full max-w-4xl max-h-[80vh] overflow-hidden z-50 flex flex-col">
-          <div className="border-b border-gray-200 p-6">
-            <Dialog.Title className="text-2xl font-bold text-gray-700">
+        <Dialog.Popup className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-warm-text border border-white border-opacity-20 w-full max-w-4xl max-h-[80vh] overflow-hidden z-50 flex flex-col">
+          <div className="border-b border-white border-opacity-20 p-6">
+            <Dialog.Title className="text-2xl font-bold text-white">
               Add to Favorites
             </Dialog.Title>
-            <Dialog.Description className="text-sm text-gray-600 mt-2">
+            <Dialog.Description className="text-sm text-white text-opacity-60 mt-2">
               Select a book from your library to add to your favorites
             </Dialog.Description>
           </div>
@@ -77,7 +78,7 @@ export default function AddFavoriteModal({
               </div>
             ) : availableBooks.length === 0 ? (
               <div className="text-center py-20">
-                <p className="text-gray-600">
+                <p className="text-white text-opacity-60">
                   No books available. Add books to your library first.
                 </p>
               </div>
@@ -94,7 +95,7 @@ export default function AddFavoriteModal({
                       }}
                       className="text-left hover:opacity-80 transition-opacity"
                     >
-                      <div className="aspect-[2/3] bg-white border border-gray-200 overflow-hidden mb-2">
+                      <div className="aspect-[2/3] bg-black bg-opacity-20 border border-white border-opacity-10 overflow-hidden mb-2">
                         {book.coverUrl ? (
                           <img
                             src={book.coverUrl}
@@ -102,14 +103,12 @@ export default function AddFavoriteModal({
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                            </svg>
+                          <div className="w-full h-full flex items-center justify-center bg-white bg-opacity-5">
+                            <BookOpen className="w-8 h-8 text-white text-opacity-40" />
                           </div>
                         )}
                       </div>
-                      <p className="text-sm font-medium text-gray-700 line-clamp-2">{book.title}</p>
+                      <p className="text-sm font-medium text-white line-clamp-2">{book.title}</p>
                     </button>
                   )
                 })}
@@ -117,10 +116,10 @@ export default function AddFavoriteModal({
             )}
           </div>
 
-          <div className="border-t border-gray-200 p-6">
+          <div className="border-t border-white border-opacity-20 p-6">
             <button
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 border border-white border-opacity-30 text-white hover:bg-white hover:bg-opacity-10 transition-colors"
             >
               Cancel
             </button>
