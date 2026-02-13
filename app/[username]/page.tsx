@@ -14,6 +14,7 @@ import AddFavoriteModal from '@/components/AddFavoriteModal'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import BookSearchPanel from '@/components/BookSearchPanel'
 import { useProfileByUsername, useCurrentUserProfile, useUserBooks, useUserBooksByUserId, useCachedBooks, useAddToFavorites, useRemoveFromFavorites, useReorderFavorites } from '@/lib/hooks/useProfileData'
+import { useFollowCounts, useIsFollowing, useFollowMutation, useUnfollowMutation } from '@/lib/hooks/useFollows'
 import type { BookStatus } from '@/lib/types/userBook'
 import type { Book } from '@/lib/types/book'
 
@@ -70,6 +71,16 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const addToFavoritesMutation = useAddToFavorites()
   const removeFromFavoritesMutation = useRemoveFromFavorites()
   const reorderFavoritesMutation = useReorderFavorites()
+
+  // Fetch follow data
+  const { data: followCounts } = useFollowCounts(profile?.user_id)
+  const { data: isFollowingUser, isLoading: followCheckLoading } = useIsFollowing(
+    !isOwnProfile ? profile?.user_id : undefined
+  )
+
+  // Follow mutations
+  const followMutation = useFollowMutation()
+  const unfollowMutation = useUnfollowMutation()
 
   // Check if viewing own profile
   useEffect(() => {
@@ -163,6 +174,22 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const handleCurrentlyReadingCleared = useCallback(() => {
     setCurrentlyReadingCleared(true)
   }, [])
+
+  const handleFollowToggle = useCallback(async () => {
+    if (!profile?.user_id) return
+
+    try {
+      if (isFollowingUser) {
+        await unfollowMutation.mutateAsync(profile.user_id)
+        addToast('Unfollowed', 'success')
+      } else {
+        await followMutation.mutateAsync(profile.user_id)
+        addToast('Following', 'success')
+      }
+    } catch (error) {
+      addToast(error instanceof Error ? error.message : 'Failed to update follow', 'error')
+    }
+  }, [profile?.user_id, isFollowingUser, followMutation, unfollowMutation, addToast])
 
   // Get filtered books for the list section (exclude currently reading from the main list)
   const filteredBooks = useMemo(() => {
@@ -268,16 +295,33 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                 </h1>
                 <div className="flex items-center gap-3 text-sm text-warm-text-secondary">
                   <span>@{profile.username}</span>
-                  <span>Hamilton, ON</span>
-                  <a href="#" className="hover:underline">32 Followers</a>
+                  <Link href={`/${params.username}/followers`} className="hover:underline">
+                    {followCounts?.followers ?? 0} Followers
+                  </Link>
+                  <span>·</span>
+                  <Link href={`/${params.username}/following`} className="hover:underline">
+                    {followCounts?.following ?? 0} Following
+                  </Link>
                 </div>
               </div>
 
               {/* Follow buttons - only for other profiles */}
-              {!isOwnProfile && (
+              {!isOwnProfile && user && (
                 <div className="flex gap-2">
-                  <button className="px-6 py-2 text-sm font-semibold tracking-wide transition-colors bg-warm-text text-warm-bg-secondary hover:bg-warm-text-secondary">
-                    FOLLOW
+                  <button
+                    onClick={handleFollowToggle}
+                    disabled={followMutation.isPending || unfollowMutation.isPending || followCheckLoading}
+                    className={`px-6 py-2 text-sm font-semibold tracking-wide transition-colors ${
+                      isFollowingUser
+                        ? 'bg-warm-bg border border-warm-border text-warm-text hover:bg-warm-bg-secondary hover:border-warm-text-tertiary'
+                        : 'bg-warm-text text-warm-bg-secondary hover:bg-warm-text-secondary'
+                    } disabled:opacity-50`}
+                  >
+                    {followMutation.isPending || unfollowMutation.isPending
+                      ? '...'
+                      : isFollowingUser
+                        ? 'FOLLOWING'
+                        : 'FOLLOW'}
                   </button>
                   <button className="p-2 transition-colors border border-warm-border hover:bg-warm-bg">
                     <MoreVertical className="w-5 h-5" />

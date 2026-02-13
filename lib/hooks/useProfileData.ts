@@ -39,17 +39,17 @@ export function useCurrentUserProfile() {
 }
 
 // Hook to fetch current user's books
-export function useUserBooks(filter?: BookStatus) {
+export function useUserBooks(filter?: BookStatus | 'all') {
   return useQuery({
-    queryKey: booksKeys.byStatus(filter),
+    queryKey: booksKeys.byStatus(filter === 'all' ? undefined : filter),
     queryFn: () => getUserBooks(filter === 'all' ? undefined : filter),
   })
 }
 
 // Hook to fetch any user's books by their user_id
-export function useUserBooksByUserId(userId: string | undefined, filter?: BookStatus) {
+export function useUserBooksByUserId(userId: string | undefined, filter?: BookStatus | 'all') {
   return useQuery({
-    queryKey: booksKeys.byUserId(userId ?? '', filter),
+    queryKey: booksKeys.byUserId(userId ?? '', filter === 'all' ? undefined : filter),
     queryFn: () => getUserBooksByUserId(userId!, filter === 'all' ? undefined : filter),
     enabled: !!userId,
   })
